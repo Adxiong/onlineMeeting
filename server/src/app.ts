@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-10 22:01:58
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-12 18:58:43
+ * @LastEditTime: 2022-02-12 21:44:23
  */
 import * as express from 'express';
 import * as cookieParser from "cookie-parser";
@@ -18,11 +18,17 @@ import config from './config';
 import logger from './utils/logger';
 const app = express()
 app.use(cors())
+
 const service = http.createServer(app)
 
 const io = new Socket.Server(service)
 
+
+app.use(bodyParser.urlencoded())
+app.use(bodyParser.json())
+
 app.use('/api', api)
+
 const SocketStore = []
 
 io.on("connection", (socket) => {
