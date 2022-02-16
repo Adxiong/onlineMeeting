@@ -1,10 +1,11 @@
+import { Socket } from 'socket.io-client';
 /*
  * @Description: 
  * @version: 
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-14 22:56:06
+ * @LastEditTime: 2022-02-16 17:09:15
  */
 import * as io from 'socket.io-client';
 const socket = io.connect('http://localhost:8000',{
@@ -14,43 +15,27 @@ const socket = io.connect('http://localhost:8000',{
 
 
 export default class SocketClient {
-  url: string;
-  socket?: io.Socket;
+  url: string = 'http://localhost:8000'
+  socket: io.Socket | null = null
 
-  /**
-   * @param url socket connect address
-   */
-  constructor(url: string){
-    this.url = url
-  }
-
-  connect (nickName: string) {
+  connect () {
+    //存在socket 便不用重新连接
+    if (this.socket) return
     this.socket = io.connect(this.url, {
       withCredentials: true,
-      transports: ['websocket']
+      transports: ['websocket'],
     })
-    this._registerEventListen()
   }
 
-  _registerEventListen() {
-    socket.on('receiveMessage', this.receiveMessage)
-    socket.on('levelRoom', this.levelRoom)
+  on(ev: string, cb:(...args: any[]) => void){
+    this.socket && this.socket.on(ev, cb)
   }
 
   sendMessage(charInfo: {[propName: string]: string}) {
     this.socket && this.socket.emit('message',JSON.stringify(charInfo))
   }
 
-  receiveMessage(data: any) {
-    return JSON.parse(data)
-  }
-
   joinRoom(userInfo: {[propName: string]: string}) {    
-    this.socket && this.socket.emit('joinRoom', JSON.stringify(userInfo))
+    this.socket && this.socket.emit('joinRoom', JSON.stringify({userInfo}))
   }
-
-  levelRoom(data: any) {
-    return JSON.parse(data)
-  }
-
 }
