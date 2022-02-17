@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-11 12:30:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-16 17:16:01
+ * @LastEditTime: 2022-02-17 22:48:19
  */
 
 import { Button, Form, Input, message, Space } from 'antd';
@@ -66,13 +66,6 @@ const Login: FC = () => {
   const formChange = (changeValues: string, form: FormData) => {
       setForm(form)
   }
-
-  // useEffect( () => {    
-  //   if (socketState) {
-  //     navigator('/room')
-  //     return
-  //   } 
-  // }, [])
 
   return (
     <div className={loginStyle.loginPanel}>
