@@ -4,20 +4,19 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-17 14:56:46
+ * @LastEditTime: 2022-02-18 23:24:48
  */
 
 import { Input } from 'antd'
-import { FC, useEffect, useState } from 'react'
-import { useSocketContext } from '../../hooks/useSocket'
+import { FC, useContext, useEffect, useState } from 'react'
+import { StoreContext } from '../../store/store'
 import styles from './styles/chat.module.less'
 
 const Chat: FC = () => {
-  const { socketState } = useSocketContext()
   const [message, setMessage] = useState<any[]>([])
-
+  const { store, dispatch } = useContext(StoreContext)
   useEffect( () => {
-    socketState.client.on('message', (data: string) => {      
+    store.client && store.client.on('message', (data: string) => {      
       setMessage((message) => {
         return [
           ...message,
@@ -28,8 +27,8 @@ const Chat: FC = () => {
   }, [])
 
   const sendMessage = (message: string) => {
-    socketState.client.sendMessage({
-      send: socketState.client.nickname,
+    store.client && store.client.sendMessage({
+      send: store.name,
       message
     })
   }

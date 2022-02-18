@@ -4,13 +4,13 @@
  * @Author: Adxiong
  * @Date: 2022-02-10 15:48:30
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-14 22:14:46
+ * @LastEditTime: 2022-02-18 23:30:02
  */
 import { Button } from 'antd'
 import React, { useContext, useEffect, useState } from 'react'
 import './App.css'
 import Routes from './routes';
-import SocketContext from './hooks/useSocket';
+import StoreContext from './store/store';
 
 
 
@@ -22,9 +22,9 @@ function App() {
 
   return (
     <div className="App">
-      <SocketContext>
+      <StoreContext>
         <Routes></Routes>
-      </SocketContext>
+      </StoreContext>
     </div>
   )
 }

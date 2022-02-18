@@ -4,47 +4,43 @@
  * @Author: Adxiong
  * @Date: 2022-02-11 12:30:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-17 22:48:19
+ * @LastEditTime: 2022-02-18 23:27:44
  */
 
 import { Button, Form, Input, message, Space } from 'antd';
-import { FC, useEffect, useState } from 'react'; 
+import { FC, useContext, useEffect, useState } from 'react'; 
 import loginStyle from './styles/login.module.less'
-import { useSocketContext } from '../../hooks/useSocket';
 import { useNavigate } from 'react-router-dom';
-import SocketClient from "../../socket"
 import Utils from '../../utils/util';
+import { StoreContext } from '../../store/store';
 
 interface FormData {
-  nickname: string
+  name: string
   roomId: string
 }
 
 const Login: FC = () => {
-  const { socketState, setSocketState} = useSocketContext()
+  const { store, dispatch} = useContext(StoreContext)
   const [ form, setForm ] = useState<FormData>({
-    nickname: '',
+    name: '',
     roomId: "",
   })
   const navigator = useNavigate()  
 
   const joinRoom = () => {
-    if(!form.nickname || !form.roomId) {
+    if(!form.name || !form.roomId) {
       message.error("数据不能为空")
       return
     }
-
     try {
-      const client:SocketClient = new SocketClient()
-      client.connect()
-      client.joinRoom({
-        nickname: form.nickname,
-        roomId: form.roomId
-      })
-      setSocketState({
+      dispatch({
+        type: 'setUserInfo',
+        payload: form
+      })      
+      
+      window.localStorage.setItem('userInfo', JSON.stringify({
         ...form,
-        client
-      })
+      }))
       navigator(`/room/${form.roomId}`)
     }
     catch(e) {
@@ -54,7 +50,7 @@ const Login: FC = () => {
   }
 
   const createRoom = () => {
-    if(!form.nickname) {
+    if(!form.name) {
       message.error("数据不能为空")
       return
     }
@@ -81,7 +77,7 @@ const Login: FC = () => {
         </Form.Item>
         <Form.Item 
           label="昵称" 
-          name="nickname" 
+          name="name" 
           rules={
             [
               {required: true, message: "数据不能为空"},
