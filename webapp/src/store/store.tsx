@@ -4,12 +4,12 @@
  * @Author: Adxiong
  * @Date: 2022-02-18 18:15:48
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-18 23:34:35
+ * @LastEditTime: 2022-02-19 00:30:32
  */
-import { FC, useContext, useReducer, createContext, Dispatch} from 'react'
+import { Button } from 'antd'
+import React, { FC, useContext, useReducer, createContext, Dispatch, Children} from 'react'
 import { Outlet } from 'react-router-dom'
 import SocketClient from '../socket'
-import { SETSOCKET, SETUSERINFO } from './constant'
 
 
 interface StateType {
@@ -20,13 +20,13 @@ interface StateType {
 
 const reducer = (state: StateType, actions: {type: string, payload: any}) => {
   switch (actions.type){
-    case SETUSERINFO: 
+    case "setUserInfo": 
       return {
         ...state,
         name: actions.payload.name,
         roomId: actions.payload.roomId
       }
-    case SETSOCKET:
+    case "setSocket":
       return {
         ...state,
         client: actions.payload
@@ -44,19 +44,20 @@ interface ContextInterface {
   }>
 }
 
+export const StoreContext = createContext({} as ContextInterface)
 
-export const StoreContext = createContext({})
-
-const Store: FC = () => {
+const Store: FC= ({children}) => {
   const [ store, dispatch ] = useReducer(reducer, {
     name: "",
     roomId: "",
   })
 
   return (
-    <StoreContext.Provider value={{store,dispatch}}>
-      <Outlet/>
-    </StoreContext.Provider>
+    <div>
+      <StoreContext.Provider value={{store,dispatch}}>
+        {children}
+      </StoreContext.Provider>
+    </div>
   )
 }
 

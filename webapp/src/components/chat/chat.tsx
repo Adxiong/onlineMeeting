@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-18 23:24:48
+ * @LastEditTime: 2022-02-19 00:39:15
  */
 
 import { Input } from 'antd'
@@ -16,7 +16,7 @@ const Chat: FC = () => {
   const [message, setMessage] = useState<any[]>([])
   const { store, dispatch } = useContext(StoreContext)
   useEffect( () => {
-    store.client && store.client.on('message', (data: string) => {      
+    store.client && store.client.on('message', (data: string) => {                  
       setMessage((message) => {
         return [
           ...message,
@@ -24,7 +24,7 @@ const Chat: FC = () => {
         ]
       })
     })
-  }, [])
+  }, [store])
 
   const sendMessage = (message: string) => {
     store.client && store.client.sendMessage({
@@ -46,7 +46,7 @@ const Chat: FC = () => {
     <div className={styles.chatPanel}>
       <div className={styles.messageBox}>
           {
-            message.map( (item, index) => {              
+            message.map( (item, index) => {                            
               return (
                 <div key={index}>
                   {item.message}

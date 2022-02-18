@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-18 22:50:23
+ * @LastEditTime: 2022-02-19 00:41:13
  */
 
 
@@ -23,8 +23,8 @@ const Room: FC = () => {
   const { store, dispatch } = useContext(StoreContext)
   useEffect( () => {
     const socket = new SocketClient({
-      url: "http://localhost:8000"
-    })
+      url: 'http://localhost:8000'
+    })    
     socket.joinRoom({
       name: store.name,
       roomId: store.roomId
@@ -33,7 +33,7 @@ const Room: FC = () => {
       type: "setSocket",
       payload: socket
     })
-  })
+  }, [])
   return (
     <div className={style.roomPanel}>
       <div className={style.videoArea}>

@@ -5,7 +5,7 @@ import { Socket } from 'socket.io-client';
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-18 22:47:20
+ * @LastEditTime: 2022-02-19 00:22:05
  */
 import * as io from 'socket.io-client';
 const socket = io.connect('http://localhost:8000',{
@@ -20,7 +20,7 @@ export default class SocketClient {
 
   constructor(config: {
     url: string 
-  }) {
+  }) {    
     this.url = config.url
     this.connect()
   }
@@ -28,6 +28,7 @@ export default class SocketClient {
   connect () {
     //存在socket 便不用重新连接
     if (this.socket) return
+    
     this.socket = io.connect(this.url, {
       withCredentials: true,
       transports: ['websocket'],
