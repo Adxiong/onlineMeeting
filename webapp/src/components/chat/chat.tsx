@@ -4,13 +4,14 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-19 00:39:15
+ * @LastEditTime: 2022-02-19 15:35:59
  */
 
 import { Input } from 'antd'
 import { FC, useContext, useEffect, useState } from 'react'
 import { StoreContext } from '../../store/store'
 import styles from './styles/chat.module.less'
+import Message from './message'
 
 const Chat: FC = () => {
   const [message, setMessage] = useState<any[]>([])
@@ -28,6 +29,7 @@ const Chat: FC = () => {
 
   const sendMessage = (message: string) => {
     store.client && store.client.sendMessage({
+      type: 'group',
       send: store.name,
       message
     })
@@ -45,15 +47,9 @@ const Chat: FC = () => {
   return (
     <div className={styles.chatPanel}>
       <div className={styles.messageBox}>
-          {
-            message.map( (item, index) => {                            
-              return (
-                <div key={index}>
-                  {item.message}
-                </div>
-              )
-            })
-          }
+          <Message
+            message={message}
+          ></Message>
       </div>
       <div className={styles.messageInputPanel}>
         <div className={styles.toolbar}>

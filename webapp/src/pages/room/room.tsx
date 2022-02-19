@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-19 00:41:13
+ * @LastEditTime: 2022-02-19 16:06:33
  */
 
 
@@ -25,14 +25,24 @@ const Room: FC = () => {
     const socket = new SocketClient({
       url: 'http://localhost:8000'
     })    
-    socket.joinRoom({
-      name: store.name,
-      roomId: store.roomId
-    })
-    dispatch({
-      type: "setSocket",
-      payload: socket
-    })
+    const userInfo = JSON.parse(String(window.localStorage.getItem("userInfo")))
+    if (!store.name && !store.roomId && userInfo) {
+      dispatch({
+        type: 'setUserInfo',
+        payload: {
+          name: userInfo.name,
+          roomId: userInfo.roomId
+        } 
+      })
+      socket.joinRoom({
+        name: userInfo?.name || store.name,
+        roomId: userInfo?.roomId || store.roomId
+      })
+      dispatch({
+        type: "setSocket",
+        payload: socket
+      })
+    }
   }, [])
   return (
     <div className={style.roomPanel}>
