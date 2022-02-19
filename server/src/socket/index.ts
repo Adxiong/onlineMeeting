@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 17:03:21
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-15 15:51:01
+ * @LastEditTime: 2022-02-19 15:58:22
  */
 
 
@@ -34,15 +34,28 @@ export default class SocketServer {
     //给房间其他人推送，xx断开连接
   }
 
-  receiveMessage(socket, data) {
-    return JSON.parse(data)
+  receiveMessage(socket, context) {
+    const data = JSON.parse(context)
+    
+     //给房间内所有人推送消息
+     for( const client of this.room) {
+      this.sendMessage(client, {
+        content: data.message, 
+        type: data.type,
+        send: data.send,
+        date: new Date().getTime()
+
+      })
+    }
 
   }
 
   joinRoom(socket, context) {
     //给其他人推送，xx已经加入房间
+    console.log(socket, context);
+    
     const data = JSON.parse(context)    
-    socket["nickname"] = data.nickname
+    socket["name"] = data.userInfo.name
     this.userList.push(socket)
 
     //房间里查找有无此用户，没有就加入
@@ -56,7 +69,7 @@ export default class SocketServer {
         if (client.id == socket.id ) {
           return
         }
-        this.sendMessage(client, {message:`${socket['nickname']}加入房间`, type:"system"})
+        this.sendMessage(client, {message:`${socket['name']}加入房间`, type:"system"})
       }
     }
   }
