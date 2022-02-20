@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-19 16:06:33
+ * @LastEditTime: 2022-02-20 20:29:26
  */
 
 
@@ -49,6 +49,7 @@ const Room: FC = () => {
       <div className={style.videoArea}>
         <div className={style.personVideo}>
           <div className={style.videoEle}>
+            <video src=""></video>
             <video src=""></video>
           </div>
           <div className={style.personName}>
