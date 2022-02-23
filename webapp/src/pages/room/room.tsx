@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-22 20:51:18
+ * @LastEditTime: 2022-02-23 21:33:15
  */
 
 
@@ -95,7 +95,9 @@ const Room: FC = () => {
     }
   }, [])
 
+  
   useEffect( () => {
+    //注册事件
     registerPeerEvent()
   },[])
 
