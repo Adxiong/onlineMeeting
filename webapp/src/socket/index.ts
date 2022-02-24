@@ -5,7 +5,7 @@ import { Socket } from 'socket.io-client';
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-19 00:22:05
+ * @LastEditTime: 2022-02-24 17:22:18
  */
 import * as io from 'socket.io-client';
 const socket = io.connect('http://localhost:8000',{
@@ -36,11 +36,17 @@ export default class SocketClient {
   }
 
   on(ev: string, cb:(...args: any[]) => void){
+    console.log(`注册${ev}事件成功`);
+    
     this.socket && this.socket.on(ev, cb)
   }
 
   sendMessage(chatInfo: {[propName: string]: string}) {
     this.socket && this.socket.emit('message',JSON.stringify(chatInfo))
+  }
+
+  sendRtc(data) {
+    this.socket && this.socket.emit('rtc',JSON.stringify(data))
   }
 
   joinRoom(userInfo: {[propName: string]: string}) {    

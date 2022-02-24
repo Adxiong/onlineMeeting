@@ -4,12 +4,12 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-23 21:33:15
+ * @LastEditTime: 2022-02-24 18:11:27
  */
 
 
 import { Button } from 'antd'
-import { createRef, FC, useContext, useEffect, useState } from 'react'
+import { createRef, FC, useContext, useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Socket } from 'socket.io-client'
 import Chat from '../../components/chat/chat'
@@ -22,49 +22,61 @@ import style from './styles/room.module.less'
 const Room: FC = () => {
   const params = useParams()
   const { store, dispatch } = useContext(StoreContext)
-  const localVideoRef = createRef<HTMLVideoElement>()
+  const localVideoRef = useRef<HTMLVideoElement | null>( null)
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null)
   const [ media, setMedia ] = useState<MediaStreamTrack[]>([])
   const [ localMediaStatus, setLocalMediaStatus ] = useState<boolean>(false)
+  const [ remoteMedia, setRemoteMedia ] = useState<MediaStreamTrack[]>([])
   const [ peer, setPeer ] = useState<RTCPeerConnection>()
 
-  const registerPeerEvent = () => {
-
-    if (peer) {    
-      console.log("触发");
-  
+  const registerPeerEvent = (socket, peer) => {
+    console.log(peer);
+    
+    if (peer && socket) {    
+      
       peer.onicecandidate = (e) => {
-        console.log(e);
 
         if (e.candidate) {
-          store.client?.sendMessage({
-            offer_ice :JSON.stringify({
+          socket.sendRtc({
             type: 'offer_ice',
             iceCandidate: e.candidate
-          })})
+          })
         }
       }
-      store.client?.on('message', e => {
-        console.log("72行消息=====》",e);
+      socket.on('rtc', data => {
+      
+        const { type, sdp, iceCandidate } = JSON.parse(data);
         
-        const { type, sdp, iceCandidate } = JSON.parse(e.data);
         if (type === 'offer_ice') {
+
           peer.addIceCandidate(iceCandidate);
         }
         if (type === 'offer') {
-          navigator.mediaDevices.getUserMedia();		// 与发起方一致，省略
+          
+          // navigator.mediaDevices.getUserMedia 		// 与发起方一致，省略
           const offerSdp = new RTCSessionDescription({ type, sdp });
           peer.setRemoteDescription(offerSdp).then(() => {
             peer.createAnswer(answer => {
-                store.client?.sendMessage({"answer":JSON.stringify(answer)});
+              socket.sendRtc(answer);
               peer.setLocalDescription(answer)
             });
           });
         }
       }
       )
-      peer.ontrack = e => {
-        if (e && e.streams) {
-          localVideoRef.current!.srcObject = e.streams[0];
+      peer.ontrack = e => {        
+        console.log(`trackEvent ===>`, e);
+        
+              
+        if (e && e.streams && remoteVideoRef.current) {
+          
+          remoteVideoRef.current.srcObject = e.streams[0];
+          // setRemoteMedia( (media) => {
+          //   return ([
+          //     ...media,
+          //     e.streams[0]
+          //   ])
+          // })
         }
       };
     }
@@ -74,7 +86,11 @@ const Room: FC = () => {
     const socket = new SocketClient({
       url: 'http://localhost:8000'
     })    
-    setPeer(new RTCPeerConnection())
+    const peer = new RTCPeerConnection()
+    registerPeerEvent(socket, peer)
+    setPeer(() => {
+      return peer
+    })
     const userInfo = JSON.parse(String(window.localStorage.getItem("userInfo")))
     if (!store.name && !store.roomId && userInfo) {
       dispatch({
@@ -95,12 +111,6 @@ const Room: FC = () => {
     }
   }, [])
 
-  
-  useEffect( () => {
-    //注册事件
-    registerPeerEvent()
-  },[])
-
   const constraints = {
     video:  true,
     audio: true,
@@ -117,14 +127,16 @@ const Room: FC = () => {
         localVideoRef.current!.style.transform = "rotateY(180deg)"
         setMedia(stream.getTracks())
         setLocalMediaStatus(true)
-        if (peer) {
+        if (peer) {          
           stream.getTracks().forEach( track => {
+            console.log(track);
+            
             peer.addTrack(track, stream)
           })
           peer.createOffer()
           .then( offer => {
             peer.setLocalDescription(offer)            
-            store.client && store.client.sendMessage({offer: JSON.stringify(offer)})
+            store.client && store.client.sendRtc(offer)
           })
         }
         
@@ -153,6 +165,9 @@ const Room: FC = () => {
           <div className={style.personName}>
             <span></span>
           </div>
+          <video src="" ref={remoteVideoRef}  autoPlay muted></video>
+
+          {/* <Video media={remoteMedia}></Video> */}
         </div>
         <div>
           <Button>静音</Button>
