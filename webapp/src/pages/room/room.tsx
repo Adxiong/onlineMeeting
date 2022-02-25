@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-24 18:11:27
+ * @LastEditTime: 2022-02-25 20:05:35
  */
 
 
@@ -22,7 +22,7 @@ import style from './styles/room.module.less'
 const Room: FC = () => {
   const params = useParams()
   const { store, dispatch } = useContext(StoreContext)
-  const localVideoRef = useRef<HTMLVideoElement | null>( null)
+  const localVideoRef = useRef<HTMLVideoElement>( null)
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null)
   const [ media, setMedia ] = useState<MediaStreamTrack[]>([])
   const [ localMediaStatus, setLocalMediaStatus ] = useState<boolean>(false)
@@ -65,12 +65,15 @@ const Room: FC = () => {
       }
       )
       peer.ontrack = e => {        
-        console.log(`trackEvent ===>`, e);
+        // console.log(`trackEvent ===>`, e);
         
               
         if (e && e.streams && remoteVideoRef.current) {
-          
-          remoteVideoRef.current.srcObject = e.streams[0];
+          console.log("视频流绑定", e.track);
+          remoteVideoRef.current!.srcObject = e.streams[0]
+
+          // remoteVideoRef.current.srcObject = new MediaStream(e.track)
+          // remoteVideoRef.current.play()
           // setRemoteMedia( (media) => {
           //   return ([
           //     ...media,
@@ -124,15 +127,12 @@ const Room: FC = () => {
       navigator.mediaDevices.getUserMedia(constraints)
       .then( stream => {
         localVideoRef.current!.srcObject = stream
+        localStream.current = stream
         localVideoRef.current!.style.transform = "rotateY(180deg)"
         setMedia(stream.getTracks())
         setLocalMediaStatus(true)
         if (peer) {          
-          stream.getTracks().forEach( track => {
-            console.log(track);
-            
-            peer.addTrack(track, stream)
-          })
+          s
           peer.createOffer()
           .then( offer => {
             peer.setLocalDescription(offer)            
@@ -154,19 +154,22 @@ const Room: FC = () => {
     
   }
 
-
+  
   return (
     <div className={style.roomPanel}>
       <div className={style.videoArea}>
         <div className={style.personVideo}>
           <div className={style.videoEle}>
-            <video src="" ref={localVideoRef} autoPlay muted></video>
+            <video src="" ref={localVideoRef} autoPlay muted width={200} height={200}></video>
           </div>
           <div className={style.personName}>
             <span></span>
           </div>
-          <video src="" ref={remoteVideoRef}  autoPlay muted></video>
+          <video src="" ref={remoteVideoRef} autoPlay muted width={200} height={200}></video>
 
+          {
+                      console.log("渲染")
+          }          
           {/* <Video media={remoteMedia}></Video> */}
         </div>
         <div>
