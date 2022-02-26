@@ -5,7 +5,7 @@ import { Socket } from 'socket.io-client';
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-24 17:22:18
+ * @LastEditTime: 2022-02-26 17:38:39
  */
 import * as io from 'socket.io-client';
 const socket = io.connect('http://localhost:8000',{
@@ -45,8 +45,8 @@ export default class SocketClient {
     this.socket && this.socket.emit('message',JSON.stringify(chatInfo))
   }
 
-  sendRtc(data) {
-    this.socket && this.socket.emit('rtc',JSON.stringify(data))
+  send(type: string, data: {[propName: string]: any}) {
+    this.socket && this.socket.emit(type,JSON.stringify(data))
   }
 
   joinRoom(userInfo: {[propName: string]: string}) {    

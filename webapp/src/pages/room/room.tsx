@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-25 20:05:35
+ * @LastEditTime: 2022-02-26 20:18:50
  */
 
 
@@ -29,57 +29,47 @@ const Room: FC = () => {
   const [ remoteMedia, setRemoteMedia ] = useState<MediaStreamTrack[]>([])
   const [ peer, setPeer ] = useState<RTCPeerConnection>()
 
-  const registerPeerEvent = (socket, peer) => {
-    console.log(peer);
+  const registerPeerEvent = (socket, peer, userInfo) => {
     
     if (peer && socket) {    
       
       peer.onicecandidate = (e) => {
-
+        console.log("触发ice",userInfo);
         if (e.candidate) {
-          socket.sendRtc({
-            type: 'offer_ice',
-            iceCandidate: e.candidate
-          })
+          socket.send('addIceCandidate', {user: userInfo.name, candidate: e.candidate})
         }
       }
-      socket.on('rtc', data => {
-      
-        const { type, sdp, iceCandidate } = JSON.parse(data);
-        
-        if (type === 'offer_ice') {
+      socket.on('addIceCandidate', data => {
+        const { candidate, user} = JSON.parse(data)
+        peer.addIceCandidate(candidate)
+      })
 
-          peer.addIceCandidate(iceCandidate);
-        }
-        if (type === 'offer') {
-          
-          // navigator.mediaDevices.getUserMedia 		// 与发起方一致，省略
-          const offerSdp = new RTCSessionDescription({ type, sdp });
-          peer.setRemoteDescription(offerSdp).then(() => {
-            peer.createAnswer(answer => {
-              socket.sendRtc(answer);
-              peer.setLocalDescription(answer)
-            });
-          });
-        }
-      }
-      )
+      socket.on('receiveAnswer', (answer) => {
+        // const { answer } = JSON.parse(data)
+        peer.setRemoteDescription(answer)
+      })
+      socket.on('receiveOffer', async (data) => {
+        console.log("触发", JSON.parse(data));
+
+        // const stream = await navigator.mediaDevices.getUserMedia(constraints)
+        // localVideoRef.current && (localVideoRef.current.srcObject = stream)
+        // stream.getTracks().forEach(track => {
+        //   peer.addTrack(track, stream)
+        // });
+
+        const { offer, user } = JSON.parse(data)
+        await peer.setRemoteDescription(offer)
+        const answer = await peer.createAnswer()
+        socket.send( 'receiveAnswer', {answer, user: userInfo.name})
+        peer.setLocalDescription(answer)
+      })
+    
       peer.ontrack = e => {        
-        // console.log(`trackEvent ===>`, e);
-        
+        console.log(`trackEvent ===>`, e);
               
         if (e && e.streams && remoteVideoRef.current) {
           console.log("视频流绑定", e.track);
           remoteVideoRef.current!.srcObject = e.streams[0]
-
-          // remoteVideoRef.current.srcObject = new MediaStream(e.track)
-          // remoteVideoRef.current.play()
-          // setRemoteMedia( (media) => {
-          //   return ([
-          //     ...media,
-          //     e.streams[0]
-          //   ])
-          // })
         }
       };
     }
@@ -90,10 +80,7 @@ const Room: FC = () => {
       url: 'http://localhost:8000'
     })    
     const peer = new RTCPeerConnection()
-    registerPeerEvent(socket, peer)
-    setPeer(() => {
-      return peer
-    })
+    
     const userInfo = JSON.parse(String(window.localStorage.getItem("userInfo")))
     if (!store.name && !store.roomId && userInfo) {
       dispatch({
@@ -112,31 +99,41 @@ const Room: FC = () => {
         payload: socket
       })
     }
+    console.log("注册前",store);
+    
+    registerPeerEvent(socket, peer, userInfo)
+    
+    setPeer(() => {
+      return peer
+    })
   }, [])
 
   const constraints = {
     video:  true,
     audio: true,
-    echoCancellation: true
+    // echoCancellation: true
   }
 
   
   const toogleLocalCamera = () => {
+    console.log("打开摄像头",store);
+    
     if (!localMediaStatus) {
       // 为假时 打开摄像头
       navigator.mediaDevices.getUserMedia(constraints)
       .then( stream => {
         localVideoRef.current!.srcObject = stream
-        localStream.current = stream
         localVideoRef.current!.style.transform = "rotateY(180deg)"
         setMedia(stream.getTracks())
+        stream.getTracks().forEach( track => {
+          peer?.addTrack(track, stream)
+        })
         setLocalMediaStatus(true)
         if (peer) {          
-          s
           peer.createOffer()
           .then( offer => {
             peer.setLocalDescription(offer)            
-            store.client && store.client.sendRtc(offer)
+            store.client && store.client.send('receiveOffer', {user: store.name , offer})
           })
         }
         
