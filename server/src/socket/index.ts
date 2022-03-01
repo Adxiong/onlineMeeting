@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 17:03:21
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-01 22:45:35
+ * @LastEditTime: 2022-03-01 23:45:05
  */
 
 
@@ -36,32 +36,18 @@ export default class SocketServer {
       if( !this.socket['client']) this.socket['client'] = []       
       this.socket['client'].push(socket)
       socket.on('joinRoom', (data) => this.joinRoom(socket, JSON.parse(data)))
-      socket.on('level', (data) => this.level(socket, JSON.parse(data)))
+      socket.on('disconnect', () => this.disConnect(socket))
     }) 
   }
  
 
-
-  level(socket: io.Socket, data) {
-    this.socket['client'] = this.socket['client'].filter( client => client['userInfo'].id != data.userId && client['userInfo'].roomId != data.roomId)
-    const roomUserList = this.getRoomUserList(data.roomId)
-    console.log(socket);
+  disConnect(socket) {
     
     console.log(`${socket["userInfo"].nick} 退出`);
+
+    this.socket['client'] = this.socket['client'].filter( client => client['userInfo'].id != socket['userInfo'].id )
     
-    this.sendToRoom(data, 
-      {
-        type: "level",
-        payload: {
-          roomUserList: roomUserList,
-          userInfo: {
-            id: data.userId,
-            roomId: data.roomId
-          },
-          message: `<${data.userId}> 退出房间` 
-        }
-      } 
-    )
+    
   }
   joinRoom(socket: io.Socket, data) {
     const userInfo = {
@@ -72,9 +58,7 @@ export default class SocketServer {
     logger.info(`id=${userInfo.id} 的 ===》 ${userInfo.nick} 加入房间 ${userInfo.roomId}`)
 
     socket['userInfo'] = userInfo
-    
-    console.log(socket);
-    
+        
     const roomUserList = this.getRoomUserList(userInfo.roomId)
     
 
@@ -91,6 +75,8 @@ export default class SocketServer {
   }
 
   getRoomUserList (roomId) {
+    console.log('client===>',this.socket['client']);
+    
     return Array.from(this.socket['client'])
     .map( client => client['userInfo'])
     .filter( userInfo => userInfo.roomId == roomId)
