@@ -4,20 +4,28 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-27 20:31:25
+ * @LastEditTime: 2022-03-01 22:47:07
  */
 
 
-import { Button } from 'antd'
+import { Button, message } from 'antd'
 import { createRef, FC, useContext, useEffect, useRef, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { Socket } from 'socket.io-client'
 import Chat from '../../components/chat/chat'
 import SocketClient from '../../socket'
 import { StoreContext } from '../../store/store'
 import Video from '../video/video'
 import style from './styles/room.module.less'
+import UserListComponent from '../../components/userList/userList'
 
+
+/**
+ * 
+ * 消息格式
+ * 
+ * 
+ */
 
 
 /**
@@ -29,6 +37,7 @@ import style from './styles/room.module.less'
 
 const Room: FC = () => {
   const params = useParams()
+  const [searchParam, setSearchParam] = useSearchParams()
   const [ peerList, setPeerList ] = useState<RTCPeerConnection[]>([])
   const { store, dispatch } = useContext(StoreContext)
   const localVideoRef = useRef<HTMLVideoElement>( null)
@@ -89,41 +98,76 @@ const Room: FC = () => {
     audio: true,
     // echoCancellation: true
   }
-
+  
   useEffect( () => {
     const socket = new SocketClient({
       url: 'http://localhost:8000'
     })    
-
+    
+    socket.on("message", data => {
+      const { type, payload} = JSON.parse(data)
+      switch (type) {
+        case "roomInfo":
+          dispatch({
+            type: "setUserInfoList",
+            payload: payload.roomUserList
+          })
+          return 
+        case "level":
+          message.info(payload.message)
+      }
+      
+    })
+    const nick = searchParam.get('nick') 
+    const roomId = searchParam.get('roomId')
+    if ( !nick || !roomId) {
+      message.error('nick或者roomid为空！')
+      return
+    }
+    socket.joinRoom({
+      nick: nick,
+      roomId: roomId
+    })
     //加入房间连接socket
     //peerList 大于1  createOffer
 
     if (peerList.length > 1) {
       const peer = new RTCPeerConnection()
-      // if(!localMediaStatus) {
-        //本地视频没有打开
-        navigator.mediaDevices.getUserMedia(constraints)
-        .then( stream => {
 
-          setLocalMediaStream(stream)
-          setLocalMediaStatus(true)
-          console.log(localVideoRef);
-          
-          localVideoRef.current && (localVideoRef.current.srcObject = stream)
-          stream.getTracks().forEach( track => {
-            peer.addTrack( track, stream)
+        //已经打开过 localMedaiStream 存在
+        if ( localMediaStream ) {
+          localMediaStream.getTracks().forEach( track => {
+            peer.addTrack(track, localMediaStream)
           })
-          setPeerList(  peerList => {
-            return [ ...peerList, peer]
-          })
-        } ) 
-        .catch ( err => {
-          console.log(err);
+
+          peer.createOffer()
+          .then ( offer => {
           
+          })
+          .catch ( err => {
+            console.log(err);
+             
+          })
+        } else {
+          //本地视频没有打开
+          navigator.mediaDevices.getUserMedia(constraints)
+          .then( stream => {
+            setLocalMediaStream(stream)
+            setLocalMediaStatus(true)
+            localVideoRef.current && (localVideoRef.current.srcObject = stream)
+            stream.getTracks().forEach( track => {
+              peer.addTrack( track, stream)
+            })
+            
+          } ) 
+          .catch ( err => {
+            console.log(err);
+            
+          })
+        }
+        setPeerList(  peerList => {
+          return [ ...peerList, peer]
         })
-      // } else {
-      //   setLocalMediaStatus(false)
-      // }
     }
 
     // const peer = new RTCPeerConnection()
@@ -141,10 +185,10 @@ const Room: FC = () => {
     //     name: userInfo?.name || store.name,
     //     roomId: userInfo?.roomId || store.roomId
     //   })
-    //   dispatch({
-    //     type: "setSocket",
-    //     payload: socket
-    //   })
+      dispatch({
+        type: "setSocket",
+        payload: socket
+      })
     // }
     
     // registerPeerEvent(socket, peer, userInfo)
@@ -218,6 +262,7 @@ const Room: FC = () => {
         </div>
         {params.roomId}
         </div>
+        <UserListComponent/>
       <Chat></Chat>
     </div>
  ) 

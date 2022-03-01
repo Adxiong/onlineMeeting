@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-11 12:30:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-18 23:38:38
+ * @LastEditTime: 2022-02-28 17:33:26
  */
 
 import { Button, Form, Input, message, Space } from 'antd';
@@ -38,10 +38,7 @@ const Login: FC = () => {
         payload: form
       })      
       
-      window.localStorage.setItem('userInfo', JSON.stringify({
-        ...form,
-      }))
-      navigator(`/room/${form.roomId}`)
+      navigator(`/room/${form.roomId}?nick=${form.name}&roomId=${form.roomId}`)
     }
     catch(e) {
       navigator(`/`)

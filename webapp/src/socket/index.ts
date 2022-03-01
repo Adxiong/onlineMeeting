@@ -5,7 +5,7 @@ import { Socket } from 'socket.io-client';
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-26 17:38:39
+ * @LastEditTime: 2022-03-01 22:42:16
  */
 import * as io from 'socket.io-client';
 const socket = io.connect('http://localhost:8000',{
@@ -51,5 +51,16 @@ export default class SocketClient {
 
   joinRoom(userInfo: {[propName: string]: string}) {    
     this.socket && this.socket.emit('joinRoom', JSON.stringify({userInfo}))
+  }
+  
+
+  level( data : {userId: string, roomId: string}) {
+    this.socket && this.socket.emit('level', JSON.stringify(data))
+  }
+
+  close(data: {userId: string, roomId: string}){
+    console.log('断开操作');
+    this.level(data)
+    
   }
 }
