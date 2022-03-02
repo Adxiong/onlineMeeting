@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-01 22:47:07
+ * @LastEditTime: 2022-03-02 18:15:44
  */
 
 
@@ -38,60 +38,15 @@ import UserListComponent from '../../components/userList/userList'
 const Room: FC = () => {
   const params = useParams()
   const [searchParam, setSearchParam] = useSearchParams()
-  const [ peerList, setPeerList ] = useState<RTCPeerConnection[]>([])
   const { store, dispatch } = useContext(StoreContext)
   const localVideoRef = useRef<HTMLVideoElement>( null)
-  // const remoteVideoRef = useRef<HTMLVideoElement | null>(null)
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null)
   const [ localMediaStream, setLocalMediaStream ] = useState<MediaStream>()
   const [ localMediaStatus, setLocalMediaStatus ] = useState<boolean>(false)
   // const [ remoteMedia, setRemoteMedia ] = useState<MediaStreamTrack[]>([])
   // const [ peer, setPeer ] = useState<RTCPeerConnection>()
 
-  // const registerPeerEvent = (socket, peer, userInfo) => {
-    
-  //   if (peer && socket) {    
-      
-  //     peer.onicecandidate = (e) => {
-  //       console.log("触发ice",userInfo);
-  //       if (e.candidate) {
-  //         socket.send('addIceCandidate', {user: userInfo.name, candidate: e.candidate})
-  //       }
-  //     }
-  //     socket.on('addIceCandidate', data => {
-  //       const { candidate, user} = JSON.parse(data)
-  //       peer.addIceCandidate(candidate)
-  //     })
 
-  //     socket.on('receiveAnswer', (answer) => {
-  //       // const { answer } = JSON.parse(data)
-  //       peer.setRemoteDescription(answer)
-  //     })
-  //     socket.on('receiveOffer', async (data) => {
-  //       console.log("触发", JSON.parse(data));
-
-  //       // const stream = await navigator.mediaDevices.getUserMedia(constraints)
-  //       // localVideoRef.current && (localVideoRef.current.srcObject = stream)
-  //       // stream.getTracks().forEach(track => {
-  //       //   peer.addTrack(track, stream)
-  //       // });
-
-  //       const { offer, user } = JSON.parse(data)
-  //       await peer.setRemoteDescription(offer)
-  //       const answer = await peer.createAnswer()
-  //       socket.send( 'receiveAnswer', {answer, user: userInfo.name})
-  //       peer.setLocalDescription(answer)
-  //     })
-    
-  //     peer.ontrack = e => {        
-  //       console.log(`trackEvent ===>`, e);
-              
-  //       if (e && e.streams && remoteVideoRef.current) {
-  //         console.log("视频流绑定", e.track);
-  //         remoteVideoRef.current!.srcObject = e.streams[0]
-  //       }
-  //     };
-  //   }
-  // }
   
   const constraints = {
     video:  true,
@@ -103,16 +58,43 @@ const Room: FC = () => {
     const socket = new SocketClient({
       url: 'http://localhost:8000'
     })    
-    
-    socket.on("message", data => {
+    let peer: RTCPeerConnection | null
+    // initSocketEvent(socket)
+    socket.on("message", async data => {
       const { type, payload} = JSON.parse(data)
+      console.log(`type ===> ${type}`);
+      
       switch (type) {
         case "roomInfo":
           dispatch({
             type: "setUserInfoList",
             payload: payload.roomUserList
           })
+          peer = initPeerConnect(socket, payload.roomUserList) || null
           return 
+        case "offer": 
+          console.log("收到offer");
+          
+          if (peer) {
+            console.log("存在peer");
+            console.log(payload);
+            
+            peer.setRemoteDescription(payload)
+            const answer =  await peer.createAnswer()
+            console.log(answer);
+            
+            peer.setLocalDescription(answer)
+            socket.send('message',{
+              type:'answer',
+              payload: answer
+            })
+          }
+          return
+        case "answer":
+          peer?.setRemoteDescription(payload)
+          return
+        case "candidate" :
+          peer?.addIceCandidate(new RTCIceCandidate(payload))
         case "level":
           message.info(payload.message)
       }
@@ -128,12 +110,34 @@ const Room: FC = () => {
       nick: nick,
       roomId: roomId
     })
-    //加入房间连接socket
-    //peerList 大于1  createOffer
+  }, [])
 
+  const initSocketEvent = (socket: SocketClient) => {
+
+  }
+  
+  const initPeerConnect = (socket, peerList) => {    
     if (peerList.length > 1) {
       const peer = new RTCPeerConnection()
+      const dc = peer.createDataChannel("my")
 
+      peer.ontrack = (stream) => {
+        remoteVideoRef.current &&  (remoteVideoRef.current.srcObject = stream.streams[0])
+      }
+      peer.onicecandidate = (e) => {
+        if (e.candidate) {
+          socket.send('message', {
+            type: 'candidate',
+            payload: e.candidate
+          })
+        }
+      }
+      dc.addEventListener('open', () => {
+        console.log("dc创建");
+
+        dc.send(JSON.stringify({"message":'123'}))
+
+      })
         //已经打开过 localMedaiStream 存在
         if ( localMediaStream ) {
           localMediaStream.getTracks().forEach( track => {
@@ -142,7 +146,8 @@ const Room: FC = () => {
 
           peer.createOffer()
           .then ( offer => {
-          
+            console.log('存在视频流');
+            
           })
           .catch ( err => {
             console.log(err);
@@ -151,12 +156,18 @@ const Room: FC = () => {
         } else {
           //本地视频没有打开
           navigator.mediaDevices.getUserMedia(constraints)
-          .then( stream => {
+          .then( async stream => {
             setLocalMediaStream(stream)
             setLocalMediaStatus(true)
             localVideoRef.current && (localVideoRef.current.srcObject = stream)
             stream.getTracks().forEach( track => {
               peer.addTrack( track, stream)
+            })
+            const offer = await peer.createOffer()
+            peer.setLocalDescription(offer)
+            socket.send('message',{
+              type: 'offer',
+              payload: offer
             })
             
           } ) 
@@ -165,77 +176,11 @@ const Room: FC = () => {
             
           })
         }
-        setPeerList(  peerList => {
-          return [ ...peerList, peer]
-        })
+      return peer
     }
+  }
 
-    // const peer = new RTCPeerConnection()
-    
-    // const userInfo = JSON.parse(String(window.localStorage.getItem("userInfo")))
-    // if (!store.name && !store.roomId && userInfo) {
-    //   dispatch({
-    //     type: 'setUserInfo',
-    //     payload: {
-    //       name: userInfo.name,
-    //       roomId: userInfo.roomId
-    //     } 
-    //   })
-    //   socket.joinRoom({
-    //     name: userInfo?.name || store.name,
-    //     roomId: userInfo?.roomId || store.roomId
-    //   })
-      dispatch({
-        type: "setSocket",
-        payload: socket
-      })
-    // }
-    
-    // registerPeerEvent(socket, peer, userInfo)
-    
-    // setPeer(() => {
-    //   return peer
-    // })
-  }, [])
-
-  
-
-  
-  // const toogleLocalCamera = () => {
-  //   console.log("打开摄像头",store);
-    
-  //   if (!localMediaStatus) {
-  //     // 为假时 打开摄像头
-  //     navigator.mediaDevices.getUserMedia(constraints)
-  //     .then( stream => {
-  //       localVideoRef.current!.srcObject = stream
-  //       localVideoRef.current!.style.transform = "rotateY(180deg)"
-  //       // setMedia(stream.getTracks())
-  //       stream.getTracks().forEach( track => {
-  //         peer?.addTrack(track, stream)
-  //       })
-  //       setLocalMediaStatus(true)
-  //       if (peer) {          
-  //         peer.createOffer()
-  //         .then( offer => {
-  //           peer.setLocalDescription(offer)            
-  //           store.client && store.client.send('receiveOffer', {user: store.name , offer})
-  //         })
-  //       }
-        
-  //     })
-  //   } else {
-  //     // 为真时，关闭摄像头
-  //     media.forEach(track => {
-  //       track.stop()
-  //     });
-  //     setMedia([])
-  //     setLocalMediaStatus(false)
-  //     localVideoRef.current &&
-  //     (localVideoRef.current.srcObject = null)
-  //   }
-    
-  // }
+   
 
   
   return (
@@ -248,7 +193,7 @@ const Room: FC = () => {
           <div className={style.personName}>
             <span></span>
           </div>
-          {/* <video src="" ref={remoteVideoRef} autoPlay muted width={200} height={200}></video> */}
+          <video src="" ref={remoteVideoRef} autoPlay muted width={200} height={200}></video>
           {/* <Video media={remoteMedia}></Video> */}
         </div>
         <div>
