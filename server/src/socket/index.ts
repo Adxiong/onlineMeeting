@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 17:03:21
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-01 23:45:05
+ * @LastEditTime: 2022-03-02 18:09:21
  */
 
 
@@ -37,6 +37,14 @@ export default class SocketServer {
       this.socket['client'].push(socket)
       socket.on('joinRoom', (data) => this.joinRoom(socket, JSON.parse(data)))
       socket.on('disconnect', () => this.disConnect(socket))
+      socket.on('message', (data) => {
+        console.log(data);
+
+        this.boradCaseToRoom({
+          id: socket.id,
+          roomId: socket['userInfo']['roomId']
+        }, data)
+      })
     }) 
   }
  
@@ -74,9 +82,7 @@ export default class SocketServer {
 
   }
 
-  getRoomUserList (roomId) {
-    console.log('client===>',this.socket['client']);
-    
+  getRoomUserList (roomId) {    
     return Array.from(this.socket['client'])
     .map( client => client['userInfo'])
     .filter( userInfo => userInfo.roomId == roomId)
@@ -91,7 +97,13 @@ export default class SocketServer {
     });
   }
 
-
+  boradCaseToRoom (userInfo, data) {
+    this.socket['client'].forEach( client => {
+      if (client['userInfo']['roomId'] == userInfo.roomId && client['userInfo']['id'] != userInfo.id ) {        
+        client.send(data)
+      }
+    });
+  }
 
   sendToUser (receiveId, data  ) {
     this.socket['client'].forEach( client => {
