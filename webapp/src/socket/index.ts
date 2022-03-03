@@ -5,7 +5,7 @@ import { Socket } from 'socket.io-client';
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-01 22:42:16
+ * @LastEditTime: 2022-03-03 18:10:14
  */
 import * as io from 'socket.io-client';
 const socket = io.connect('http://localhost:8000',{
@@ -18,10 +18,8 @@ export default class SocketClient {
   url: string = 'http://localhost:8000'
   socket: io.Socket | null = null
 
-  constructor(config: {
-    url: string 
-  }) {    
-    this.url = config.url
+  constructor(signalServer: string) {    
+    this.url = signalServer
     this.connect()
   }
   
@@ -45,8 +43,8 @@ export default class SocketClient {
     this.socket && this.socket.emit('message',JSON.stringify(chatInfo))
   }
 
-  send(type: string, data: {[propName: string]: any}) {
-    this.socket && this.socket.emit(type,JSON.stringify(data))
+  send(data: string) {
+    this.socket && this.socket.send(data)
   }
 
   joinRoom(userInfo: {[propName: string]: string}) {    
@@ -54,13 +52,13 @@ export default class SocketClient {
   }
   
 
-  level( data : {userId: string, roomId: string}) {
-    this.socket && this.socket.emit('level', JSON.stringify(data))
+  level() {
+    this.socket && this.socket.emit('level', JSON.stringify(""))
   }
 
-  close(data: {userId: string, roomId: string}){
+  close(){
     console.log('断开操作');
-    this.level(data)
-    
+    this.level()
+    this.socket?.close()
   }
 }

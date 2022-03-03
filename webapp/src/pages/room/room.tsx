@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-02 18:15:44
+ * @LastEditTime: 2022-03-03 14:42:07
  */
 
 
@@ -132,12 +132,20 @@ const Room: FC = () => {
           })
         }
       }
+      peer.ondatachannel = (e) => {
+        console.log(e.channel);
+        e.channel.onmessage = (data) => {
+          console.log(data);
+          
+        }
+      }
       dc.addEventListener('open', () => {
         console.log("dc创建");
 
         dc.send(JSON.stringify({"message":'123'}))
 
       })
+
         //已经打开过 localMedaiStream 存在
         if ( localMediaStream ) {
           localMediaStream.getTracks().forEach( track => {
