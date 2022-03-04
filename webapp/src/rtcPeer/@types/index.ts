@@ -4,12 +4,16 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:13:58
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-03 15:40:19
+ * @LastEditTime: 2022-03-04 14:35:57
  */
 
 import Peer from "../peer";
 
 
+export interface PeerInfo {
+  id: string,
+  nick: string
+}
 
 export interface Media {
   display?: MediaStream,
@@ -40,3 +44,4 @@ export interface JoinParam {
   roomId: string,
   nick: string
 }
+

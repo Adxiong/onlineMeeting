@@ -1,15 +1,16 @@
-import { JoinParam, Message } from './@types/index';
+import { JoinParam, Message, PeerInfo } from './@types/index';
 /*
  * @Description: 
  * @version: 
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-03 18:10:26
+ * @LastEditTime: 2022-03-04 15:48:43
  */
 import SocketClient from "../socket";
 import { Local } from './@types/index';
 import { trace } from 'console';
+import Peer from './peer';
 
 
 export interface PeerInit {
@@ -83,4 +84,71 @@ export default class RTCPeer {
     delete this.ws
   }
   
+  connectPeer (peerInfo: PeerInfo) {
+    const peer = new Peer(
+      peerInfo.id,
+      peerInfo.nick,
+      this.peerConfig,
+      this
+    )
+    this.addPeer(peer)
+    peer.connect()
+  }
+  addPeer (peer: Peer) {
+    this.local.peers.push(peer)
+  }
+
+  findPeer (id: string) {
+    return this.local.peers.find( peer => peer.id == id)
+  }
+
+  shareUser (constraints: MediaStreamConstraints = {
+    video: true,
+    audio: true
+  }) {
+    const { local } = this
+    navigator.mediaDevices.getUserMedia()
+    .then( stream => {
+      local.media.user = stream
+      this.local.peers.forEach( peer => {
+        stream.getTracks().forEach( track => {
+          peer.addTrack(track, stream)
+        }) 
+      })
+    })
+    .catch( err => {
+      throw new Error(err)
+    })
+  }
+
+  shareDisplay (constraints: DisplayMediaStreamConstraints) {
+    const { local } = this
+    navigator.mediaDevices.getDisplayMedia(constraints)
+    .then( stream => {
+      this.local.media.display = stream
+      this.local.peers.forEach( peer => {
+        stream.getTracks().forEach( track => {
+          peer.addTrack(track, stream)
+        })
+      })
+    })
+    .catch( err => {
+      throw new Error(err)
+    })
+  }
+
+  pushLocalStream (peer: Peer) {
+    const {user, display} = this.local.media
+    if(user){
+      user.getTracks().forEach( track => {
+        peer.addTrack(track, user)
+      })
+    }
+    if (display) {
+      display.getTracks().forEach( track => {
+        peer.addTrack(track, display)
+      })
+    }
+  }
+
 }
