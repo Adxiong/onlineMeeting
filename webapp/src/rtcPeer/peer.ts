@@ -1,16 +1,12 @@
-import { message } from 'antd';
-import { *asio } from 'socket.io-client';
 /*
  * @Description: 
  * @version: 
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-04 21:34:27
+ * @LastEditTime: 2022-03-05 18:00:58
  */
 
-import { rejects } from "assert"
-import { resolve } from "path/posix"
 import RTCPeer from "."
 import { Media, Message } from "./@types"
 
@@ -18,11 +14,17 @@ export default class Peer {
   id: string
   public media: Media = {}
   private peerConnection: RTCPeerConnection
+  private rtcPeerInstance: RTCPeer
   private isPeerConnected: boolean = false
   private dataChannel?: RTCDataChannel
-  constructor (id: string, nick: string, peerconfig: RTCConfiguration, rtcpeer: RTCPeer) {
+  constructor (
+    id: string,
+    nick: string,
+    peerconfig: RTCConfiguration,
+    rtcPeerInstance: RTCPeer) {
     this.id = ""
     this.peerConnection = new RTCPeerConnection(peerconfig)
+    this.rtcPeerInstance = rtcPeerInstance
   }
 
   connect() {
@@ -39,6 +41,8 @@ export default class Peer {
         this.isPeerConnected = true
         this.initDataChannelEvents(dc)
         //发送连接事件
+        this.rtcPeerInstance.emit('connect', this)
+        this.rtcPeerInstance.ws
         resolve("连接成功")
       })
 

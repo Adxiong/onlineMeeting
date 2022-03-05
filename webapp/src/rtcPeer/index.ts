@@ -5,12 +5,13 @@ import { JoinParam, Message, PeerInfo } from './@types/index';
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-04 15:48:43
+ * @LastEditTime: 2022-03-05 17:59:41
  */
 import SocketClient from "../socket";
 import { Local } from './@types/index';
 import { trace } from 'console';
 import Peer from './peer';
+import * as EventEmitter from 'eventemitter3'
 
 
 export interface PeerInit {
@@ -22,6 +23,7 @@ export default class RTCPeer {
   peerConfig: RTCConfiguration
   local: Local
   ws?: SocketClient
+  private eventBus: EventEmitter = new EventEmitter()
 
   constructor ( {
     signalServer,
@@ -151,4 +153,15 @@ export default class RTCPeer {
     }
   }
 
+  on(event: string | symbol, fn: (...args: any[]) => void, context?: any) {
+    this.eventBus.on(event, fn, context)
+  }
+
+  emit(event: string | symbol, ...args: any[]) {
+    this.eventBus.emit(event, ...args)
+  }
+
+  removeListener (event: string | symbol, fn?: ((...args: any[]) => void) | undefined, context?: any, once?: boolean | undefined) {
+    this.eventBus.removeListener(event, fn, context, once)
+  }
 }
