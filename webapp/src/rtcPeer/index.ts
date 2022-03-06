@@ -5,7 +5,7 @@ import { JoinParam, Message, PeerInfo } from './@types/index';
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-05 17:59:41
+ * @LastEditTime: 2022-03-06 20:40:10
  */
 import SocketClient from "../socket";
 import { Local } from './@types/index';
@@ -37,7 +37,8 @@ export default class RTCPeer {
       nick: "",
       roomId: "",
       peers: [],
-      media: {}
+      media: {},
+      trackTag: ""
     }
   }
 
@@ -112,8 +113,12 @@ export default class RTCPeer {
     navigator.mediaDevices.getUserMedia()
     .then( stream => {
       local.media.user = stream
+      const tracks = stream.getTracks()
+      let trackTag = tracks.map(track => `[user/${track.id}]`).join('')
+      this.local.trackTag = trackTag
+      
       this.local.peers.forEach( peer => {
-        stream.getTracks().forEach( track => {
+        tracks.forEach( track => {
           peer.addTrack(track, stream)
         }) 
       })
@@ -128,8 +133,12 @@ export default class RTCPeer {
     navigator.mediaDevices.getDisplayMedia(constraints)
     .then( stream => {
       this.local.media.display = stream
+      const tracks = stream.getTracks()
+      let trackTag = tracks.map(track => `[display/${track.id}]`).join('')
+      this.local.trackTag = trackTag
+
       this.local.peers.forEach( peer => {
-        stream.getTracks().forEach( track => {
+        tracks.forEach( track => {
           peer.addTrack(track, stream)
         })
       })
@@ -141,16 +150,20 @@ export default class RTCPeer {
 
   pushLocalStream (peer: Peer) {
     const {user, display} = this.local.media
+    let trackTag = ""
     if(user){
       user.getTracks().forEach( track => {
+        trackTag += `[user/${track.id}]`
         peer.addTrack(track, user)
       })
     }
     if (display) {
       display.getTracks().forEach( track => {
+        trackTag +=  `[display/${track.id}]`
         peer.addTrack(track, display)
       })
     }
+    this.local.trackTag = trackTag
   }
 
   on(event: string | symbol, fn: (...args: any[]) => void, context?: any) {

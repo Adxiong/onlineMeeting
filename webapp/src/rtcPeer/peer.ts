@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-06 16:56:15
+ * @LastEditTime: 2022-03-06 20:29:04
  */
 
 import RTCPeer from "."
@@ -163,7 +163,6 @@ export default class Peer {
       this.rtcPeerInstance.emit('join', this)
     })
   }
-
 
 
 
