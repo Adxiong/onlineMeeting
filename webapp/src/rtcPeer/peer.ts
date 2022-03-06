@@ -1,10 +1,11 @@
+import { message } from 'antd';
 /*
  * @Description: 
  * @version: 
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-06 20:29:04
+ * @LastEditTime: 2022-03-06 21:02:49
  */
 
 import RTCPeer from "."
@@ -119,7 +120,7 @@ export default class Peer {
 
     pc.addEventListener('track', (event: RTCTrackEvent ) => {
       const stream = event.streams[0]
-
+      const sdp = event.target.remoteDescription.sdp.toString()
       const setUserStream = () => {
         if (!this.media.user || this.media.user.id != stream.id) {
           this.media.user = stream
@@ -133,7 +134,7 @@ export default class Peer {
         }
       }
 
-      const streamType = trackType(stream)
+      const streamType = this.detectTrackType(sdp, event.track)
 
       if (streamType === 'user') setUserStream()
       else if (streamType === 'display') setDisplayStram()
@@ -143,6 +144,7 @@ export default class Peer {
     pc.addEventListener('negotiationneeded', () => {
       pc.createOffer()
       .then( offer => {
+        offer.sdp = this.setTrackTagToSdp(offer.sdp, this.rtcPeerInstance.local.trackTag)
         return pc.setLocalDescription(offer).then( () => offer)
         }
       )
@@ -165,10 +167,31 @@ export default class Peer {
   }
 
 
+  setTrackTagToSdp(sdp: string = '', trackTag: string) {
+    const sdpSplit = sdp.split('\n')
+    for(let i = 0 ; i < sdpSplit.length ; i++) {
+      sdpSplit[i] = sdpSplit[i].replace('/(a=extmap:[0-9]+) [^ \n]+/ig', `$1 ${trackTag}`)
+    }
+    return sdpSplit.join('\n')
+  }
 
+  detectTrackType(sdp: string, track: MediaStreamTrack) {
+    if (sdp.indexOf(`[user/${track.id}]`) !== -1) {
+      return 'user'
+    }
+    else if (sdp.indexOf(`[display/${track.id}]`) !== -1){
+      return 'display'
+    }
+  }
 
   addTrack (track: MediaStreamTrack, ...streams: MediaStream[]) {
     this.peerConnection.addTrack(track, ...streams)
   }
 
+  peerSend (message: string) {
+    this.dataChannel?.send(message)
+  }
+  close() {
+    
+  }
 }

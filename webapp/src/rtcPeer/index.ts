@@ -5,13 +5,14 @@ import { JoinParam, Message, PeerInfo } from './@types/index';
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-06 20:40:10
+ * @LastEditTime: 2022-03-06 20:50:08
  */
 import SocketClient from "../socket";
 import { Local } from './@types/index';
 import { trace } from 'console';
 import Peer from './peer';
 import * as EventEmitter from 'eventemitter3'
+import { UserInfo } from 'os';
 
 
 export interface PeerInit {
@@ -66,27 +67,7 @@ export default class RTCPeer {
     this.signalSend(message)
   }
 
-  signalSend(message: Message) {
-    if (this.ws) {
-      this.ws?.send(JSON.stringify(message))
-    } else {
-      throw new Error("ws is not defined")
-    }
-  }
 
-  level () {    
-    this.local.media.user?.getTracks().forEach( track => track.stop())
-    this.local.media.display?.getTracks().forEach( track => track.stop())
-    delete this.local.media.user
-    delete this.local.media.display
-    this.local.peers.forEach( peer => {
-      
-    })
-    this.local.peers = []
-    this.ws?.close()
-    delete this.ws
-  }
-  
   connectPeer (peerInfo: PeerInfo) {
     const peer = new Peer(
       peerInfo.id,
@@ -97,6 +78,22 @@ export default class RTCPeer {
     this.addPeer(peer)
     peer.connect()
   }
+
+  level () {    
+    this.local.media.user?.getTracks().forEach( track => track.stop())
+    this.local.media.display?.getTracks().forEach( track => track.stop())
+    delete this.local.media.user
+    delete this.local.media.display
+    this.local.peers.forEach( peer => {
+      peer.close()
+    })
+    this.local.peers = []
+    this.ws?.close()
+    delete this.ws
+    this.eventBus.removeAllListeners()
+  }
+  
+  
   addPeer (peer: Peer) {
     this.local.peers.push(peer)
   }
@@ -174,7 +171,25 @@ export default class RTCPeer {
     this.eventBus.emit(event, ...args)
   }
 
-  removeListener (event: string | symbol, fn?: ((...args: any[]) => void) | undefined, context?: any, once?: boolean | undefined) {
-    this.eventBus.removeListener(event, fn, context, once)
+  signalSend(message: Message) {
+    if (this.ws) {
+      this.ws?.send(JSON.stringify(message))
+    } else {
+      throw new Error("ws is not defined")
+    }
+  }
+
+  peerSend(message: string){
+    const userInfo: PeerInfo = {
+      id: this.local.id,
+      nick: this.local.nick
+    }
+
+    this.local.peers.forEach( peer => {
+      peer.peerSend(JSON.stringify({
+        userInfo,
+        message
+      }))
+    })
   }
 }
