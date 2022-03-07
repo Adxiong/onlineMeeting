@@ -1,19 +1,16 @@
-import { JoinParam, Message, PeerInfo } from './@types/index';
 /*
  * @Description: 
  * @version: 
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-06 20:50:08
+ * @LastEditTime: 2022-03-07 15:04:25
  */
-import SocketClient from "../socket";
+import { JoinParam, Message, PeerInfo } from './@types/index';
+import SocketClient from "./socket";
 import { Local } from './@types/index';
-import { trace } from 'console';
 import Peer from './peer';
 import * as EventEmitter from 'eventemitter3'
-import { UserInfo } from 'os';
-
 
 export interface PeerInit {
   signalServer: string,
@@ -22,7 +19,7 @@ export interface PeerInit {
 export default class RTCPeer {
   signalServer: string
   peerConfig: RTCConfiguration
-  local: Local
+  public local: Local
   ws?: SocketClient
   private eventBus: EventEmitter = new EventEmitter()
 
@@ -44,7 +41,7 @@ export default class RTCPeer {
   }
 
   initSocketClient () {
-    this.ws = new SocketClient(this.signalServer)
+    this.ws = new SocketClient(this.signalServer,this)
   }
 
   async join({roomId, nick}: JoinParam) {

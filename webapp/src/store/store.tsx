@@ -4,12 +4,11 @@
  * @Author: Adxiong
  * @Date: 2022-02-18 18:15:48
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-01 21:57:32
+ * @LastEditTime: 2022-03-07 17:41:50
  */
 import { Button } from 'antd'
 import React, { FC, useContext, useReducer, createContext, Dispatch, Children} from 'react'
-import { Outlet } from 'react-router-dom'
-import SocketClient from '../socket'
+import SocketClient from '../rtcPeer/socket'
 
 
 interface StateType {
