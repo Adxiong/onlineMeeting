@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:13:58
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-07 17:32:29
+ * @LastEditTime: 2022-03-08 14:54:16
  */
 
 import Peer from "../peer";
@@ -30,12 +30,22 @@ export interface Local {
 }
 
 interface payloadMap {
-  join: {roomId: string, nick: string}
+  join: {
+    roomId: string,
+    nick: string
+  }
+
+  roomInfo: {
+    userInfo: PeerInfo
+    users: PeerInfo[]
+  }
+  
   offer: RTCSessionDescriptionInit
   answer: RTCSessionDescriptionInit
+  icecandidate: RTCIceCandidateInit
+  level: PeerInfo
+  
 }
-
-
 
 export type Message  = {
   [k in keyof payloadMap]: {

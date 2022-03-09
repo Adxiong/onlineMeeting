@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-19 15:35:59
+ * @LastEditTime: 2022-03-08 20:38:43
  */
 
 import { Input } from 'antd'
@@ -27,11 +27,24 @@ const Chat: FC = () => {
     })
   }, [store])
 
-  const sendMessage = (message: string) => {
-    store.client && store.client.sendMessage({
-      type: 'group',
-      send: store.name,
-      message
+  const sendMessage = (value: string) => {
+    // store.client && store.client.sendMessage({
+    //   type: 'group',
+    //   send: store.name,
+    //   message
+    // })
+    setMessage( (state) => {
+      console.log(value);
+      
+      return [
+        ...state,
+        {
+          type: 'group',
+          send: 'adxiong',
+          content: value,
+          date: new Date().toString()
+        }
+      ]
     })
   }
 

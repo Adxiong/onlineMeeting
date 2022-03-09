@@ -1,20 +1,22 @@
-import RTCPeer  from '.';
-import { message } from 'antd';
 /*
  * @Description: 
  * @version: 
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-07 15:13:44
+ * @LastEditTime: 2022-03-09 01:16:00
  */
+import RTCPeer  from '.';
 import * as io from 'socket.io-client';
 import { Message } from './@types';
 import Peer from './peer';
+import { PeerInfo } from './@types/index';
+
 
 
 export default class SocketClient {
-  url: string = 'http://localhost:8000'
+  [propsName: string]: any
+  url: string 
   socket: io.Socket | null = null
   peer: RTCPeer
   constructor(signalServer: string, rtcPeer: RTCPeer) {    
@@ -42,13 +44,14 @@ export default class SocketClient {
   roomInfo(message: Message) {
 
     if(message.type === 'roomInfo') {
-      const {user, userInfo} = message.payload
-      this.peer.local.id = user.id
-      this.peer.local.nick = user.nick
-      userInfo.forEach( peerInfo => {
+      const {users, userInfo} = message.payload as {userInfo: PeerInfo, users: PeerInfo[]}      
+      this.peer.local.id = userInfo.id
+      this.peer.local.nick = userInfo.nick
+      users.
+      forEach( peerInfo => {
         this.peer.connectPeer(peerInfo)
       });
-      this.peer.emit('roomInfo', message)
+      this.peer.emit('roomInfo', users)
     }
   }
 
@@ -56,7 +59,7 @@ export default class SocketClient {
     /**
      * 收到offer  message里有userinfo。根据userInfo查找peer 没有查到就创建rtc -> add -> connect
      * 找到直接用peer.replyanswer（）
-     */
+     */        
     if(message.userInfo && message.type === 'offer') {
       const { id, nick } = message.userInfo
       let peer = this.peer.findPeer(id)
@@ -69,9 +72,8 @@ export default class SocketClient {
         )
         this.peer.addPeer(peer)
         this.peer.pushLocalStream(peer)
-        
       }
-  
+      
       peer.receiveOffer(message)
     }
    
@@ -81,15 +83,15 @@ export default class SocketClient {
     if(message.userInfo && message.type === 'answer'){
       const {id, nick} = message.userInfo
       const peer = this.peer.findPeer(id)
-      peer?.replyAnswer(message)
+      peer?.receiveAnswer(message)
     }
   }
 
   icecandidate(message: Message){
     if(message.userInfo && message.type === 'icecandidate') {
       const {id, nick} = message.userInfo
-      const peer = this.peer.findPeer(id)
-      peer?.receiveIceCandidate(new RTCIceCandidate(message.payload))
+      const peer = this.peer.findPeer(id)      
+      peer?.receiveIceCandidate(message)
     }
   }
 
@@ -112,8 +114,9 @@ export default class SocketClient {
   }
 
   handle(data: string) {
+    const instance: SocketClient = this
     const message: Message = JSON.parse(data) 
-    this[ message.type.toString()](message)
+    instance[message.type](message)
   }
 
   sendMessage(chatInfo: {[propName: string]: string}) {

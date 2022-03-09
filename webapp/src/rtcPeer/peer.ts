@@ -1,11 +1,10 @@
-import { message } from 'antd';
 /*
  * @Description: 
  * @version: 
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-06 21:02:49
+ * @LastEditTime: 2022-03-09 17:47:56
  */
 
 import RTCPeer from "."
@@ -23,9 +22,10 @@ export default class Peer {
     nick: string,
     peerconfig: RTCConfiguration,
     rtcPeerInstance: RTCPeer) {
-    this.id = ""
+    this.id = id
     this.peerConnection = new RTCPeerConnection(peerconfig)
     this.rtcPeerInstance = rtcPeerInstance
+    this.initPeerEvents()
   }
 
   connect() {
@@ -35,16 +35,15 @@ export default class Peer {
 
     const {peerConnection} = this
     return new Promise( (resolve , reject) => {
-      const dc = peerConnection.createDataChannel("DC")
-
-      dc.addEventListener('open', () => {
+      const dc = peerConnection.createDataChannel("DC")      
+      dc.addEventListener('open', () => {        
         this.dataChannel = dc
-        this.isPeerConnected = true
-        this.initDataChannelEvents(dc)
+        this.isPeerConnected = true        
+        resolve("连接成功")
         //发送连接事件
         this.rtcPeerInstance.emit('connect', this)
-        this.rtcPeerInstance.ws
-        resolve("连接成功")
+        this.initDataChannelEvents(dc)
+
       })
 
       setTimeout(() => {
@@ -54,32 +53,33 @@ export default class Peer {
   }
 
   receiveOffer (message: Message) {
-    if (message.type === 'offer') {
-      this.peerConnection.setRemoteDescription(new RTCSessionDescription(message.payload))
+    if (message.type === 'offer') {      
+      this.peerConnection.setRemoteDescription(new RTCSessionDescription(message.payload as RTCSessionDescriptionInit))
       .then( () => this.replyAnswer(message))
     }
   }
 
-  receiveAnswer(answer: RTCSessionDescription) {
-    this.peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+  receiveAnswer(message: Message) {
+    this.peerConnection.setRemoteDescription(new RTCSessionDescription(message.payload as RTCSessionDescriptionInit))
   }
 
-  receiveIceCandidate(candidate: RTCIceCandidate) {
-    this.peerConnection.addIceCandidate(candidate)
+  receiveIceCandidate(message: Message) {        
+    this.peerConnection.addIceCandidate(new RTCIceCandidate(message.payload as RTCIceCandidateInit))
   }
 
-  replyAnswer(message: Message) {
-    if (message.type === 'answer') {
+  replyAnswer(message: Message) {    
+    if (message.userInfo &&  message.type === 'offer') {
+      const {id} = message.userInfo
       this.peerConnection.createAnswer()
       .then( (answer) => 
-        this.peerConnection.setLocalDescription(answer)
+        this.peerConnection.setLocalDescription(answer).then( () => answer)
       )
-      .then( () => {
+      .then( (answer) => {
         const sendMessage = {
           type: "answer",
-          receiveId: message.userInfo.id,
-          payload: this.peerConnection.localDescription?.toJSON()
-        }
+          receiveId: id,
+          payload: answer
+        }        
         this.rtcPeerInstance.signalSend(sendMessage)
       })
       .catch( (error) => {
@@ -113,13 +113,13 @@ export default class Peer {
           type: "icecandidate",
           receiveId: this.id,
           payload: event.candidate
-        })
+        })        
       }
     })
 
 
     pc.addEventListener('track', (event: RTCTrackEvent ) => {
-      const stream = event.streams[0]
+      const stream = event.streams[0]      
       const sdp = event.target.remoteDescription.sdp.toString()
       const setUserStream = () => {
         if (!this.media.user || this.media.user.id != stream.id) {
@@ -141,24 +141,24 @@ export default class Peer {
 
     })
 
-    pc.addEventListener('negotiationneeded', () => {
+    pc.addEventListener('negotiationneeded', () => {      
       pc.createOffer()
       .then( offer => {
         offer.sdp = this.setTrackTagToSdp(offer.sdp, this.rtcPeerInstance.local.trackTag)
-        return pc.setLocalDescription(offer).then( () => offer)
-        }
-      )
-      .then( offer => {
-        this.rtcPeerInstance.emit('negotiationneeded:done', this)
-        this.rtcPeerInstance.signalSend({
-          type: 'offer',
-          receiveId: this.id,
-          payload: offer
+        pc.setLocalDescription(offer).then( () => {
+          this.rtcPeerInstance.emit('negotiationneeded:done', this)
+          this.rtcPeerInstance.signalSend({
+            type: 'offer',
+            receiveId: this.id,
+            payload: offer
+          })
         })
       })
     })
 
     pc.addEventListener('datachannel', (event) => {
+      console.log("触发 datachannel");
+      
       const dc = event.channel
       this.dataChannel = dc
       this.isPeerConnected = true

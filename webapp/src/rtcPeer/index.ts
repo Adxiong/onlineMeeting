@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-07 15:04:25
+ * @LastEditTime: 2022-03-09 18:00:47
  */
 import { JoinParam, Message, PeerInfo } from './@types/index';
 import SocketClient from "./socket";
@@ -44,13 +44,15 @@ export default class RTCPeer {
     this.ws = new SocketClient(this.signalServer,this)
   }
 
-  async join({roomId, nick}: JoinParam) {
+  join({roomId, nick}: JoinParam) {
     if( !this.ws ) {
-      await this.initSocketClient
+      this.initSocketClient()
     } 
+    
     const { local } = this
 
     if(nick) local.nick = nick
+
 
     const message: Message = {
       type: "join",
@@ -62,6 +64,8 @@ export default class RTCPeer {
     }
 
     this.signalSend(message)
+    
+
   }
 
 
@@ -73,6 +77,7 @@ export default class RTCPeer {
       this
     )
     this.addPeer(peer)
+    
     peer.connect()
   }
 
@@ -104,7 +109,7 @@ export default class RTCPeer {
     audio: true
   }) {
     const { local } = this
-    navigator.mediaDevices.getUserMedia()
+    return navigator.mediaDevices.getUserMedia(constraints)
     .then( stream => {
       local.media.user = stream
       const tracks = stream.getTracks()
@@ -116,6 +121,7 @@ export default class RTCPeer {
           peer.addTrack(track, stream)
         }) 
       })
+      return local
     })
     .catch( err => {
       throw new Error(err)
