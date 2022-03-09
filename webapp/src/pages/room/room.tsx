@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-09 22:59:19
+ * @LastEditTime: 2022-03-10 00:21:34
  */
 
 
@@ -59,15 +59,25 @@ const Room: FC = () => {
       console.log(`join===>${data}`);
       
     })
+    peer.on('track', (data) => {
+      console.log("track",data);
+      
+        const ele = document.getElementById(data.id)
+        // console.log(data.media.user);
+        
+        ele.srcObject = data.media.user
+    
+      
+    })
     // peer.connectPeer({id, nick})
     peer.join({roomId,nick})
     setPeer(()=>peer)
   }, [])
 
   const openCamera = async() => {
-    if ( peer && remoteVideoRef.current ) {
+    if ( peer && localVideoRef.current ) {
       const local: Local = await peer.shareUser({video: true, audio: true})
-      remoteVideoRef.current.srcObject = local.media.user!
+      localVideoRef.current.srcObject = local.media.user!
     }
   }
 
@@ -83,13 +93,16 @@ const Room: FC = () => {
           </div>
           <div className={style.personName}>
             <span></span>
-          </div>
-          <video src="" ref={remoteVideoRef} autoPlay muted width={200} height={200}></video>
-          
+          </div>          
           <div>
             {
-              peer && peer.local.peers.map( peer => {
-                return <video src={URL.createObjectURL(new MediaSource(peer.media.user))}></video>
+              peer && peer.local.peers.map( peer => {                
+                return (
+                  <div key={peer.id}>
+                    {peer.id}
+                    <video src="" id={peer.id}  autoPlay muted width={200} height={200}></video>
+                  </div>
+                )
               })
             }
           </div>

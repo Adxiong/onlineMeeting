@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:13:58
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-08 14:54:16
+ * @LastEditTime: 2022-03-09 23:23:38
  */
 
 import Peer from "../peer";
@@ -17,7 +17,7 @@ export interface PeerInfo {
 
 export interface Media {
   display?: MediaStream,
-  user?: MediaStream
+  user?: MediaStream | HTMLVideoElement
 }
 
 export interface Local {

@@ -4,10 +4,11 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-09 17:47:56
+ * @LastEditTime: 2022-03-10 00:20:38
  */
 
 import RTCPeer from "."
+import Video from "../pages/video/video"
 import { Media, Message } from "./@types"
 
 export default class Peer {
@@ -119,13 +120,15 @@ export default class Peer {
 
 
     pc.addEventListener('track', (event: RTCTrackEvent ) => {
+      const peer = this
       const stream = event.streams[0]      
       const sdp = event.target.remoteDescription.sdp.toString()
+      
       const setUserStream = () => {
         if (!this.media.user || this.media.user.id != stream.id) {
-          this.media.user = stream
-          this.rtcPeerInstance.emit('stream:user', this)
-        }  
+          peer.media.user = stream
+          peer.rtcPeerInstance.emit('track', this)
+        } 
       }
       const setDisplayStram = () => {
         if (!this.media.display || this.media.display.id != stream.id){
@@ -135,6 +138,7 @@ export default class Peer {
       }
 
       const streamType = this.detectTrackType(sdp, event.track)
+      
 
       if (streamType === 'user') setUserStream()
       else if (streamType === 'display') setDisplayStram()
@@ -145,6 +149,8 @@ export default class Peer {
       pc.createOffer()
       .then( offer => {
         offer.sdp = this.setTrackTagToSdp(offer.sdp, this.rtcPeerInstance.local.trackTag)
+        console.log("offer", offer.sdp);
+        
         pc.setLocalDescription(offer).then( () => {
           this.rtcPeerInstance.emit('negotiationneeded:done', this)
           this.rtcPeerInstance.signalSend({
@@ -168,10 +174,12 @@ export default class Peer {
 
 
   setTrackTagToSdp(sdp: string = '', trackTag: string) {
+    
     const sdpSplit = sdp.split('\n')
     for(let i = 0 ; i < sdpSplit.length ; i++) {
-      sdpSplit[i] = sdpSplit[i].replace('/(a=extmap:[0-9]+) [^ \n]+/ig', `$1 ${trackTag}`)
+      sdpSplit[i] = sdpSplit[i].replace(/(a=extmap:[0-9]+) [^ \n]+/ig, `$1 ${trackTag}`)
     }
+    
     return sdpSplit.join('\n')
   }
 
