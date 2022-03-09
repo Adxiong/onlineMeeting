@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 17:03:21
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-02 18:09:21
+ * @LastEditTime: 2022-03-09 17:44:22
  */
 
 
@@ -35,60 +35,52 @@ export default class SocketServer {
       }   
       if( !this.socket['client']) this.socket['client'] = []       
       this.socket['client'].push(socket)
-      socket.on('joinRoom', (data) => this.joinRoom(socket, JSON.parse(data)))
-      socket.on('disconnect', () => this.disConnect(socket))
       socket.on('message', (data) => {
-        console.log(data);
+        const message = JSON.parse(data)
+        this[message.type](socket,message)
+      })
 
-        this.boradCaseToRoom({
-          id: socket.id,
-          roomId: socket['userInfo']['roomId']
-        }, data)
+      socket.on('disconnect', () => {
+        this.socket['client'] = this.socket['client'].filter( client => client['userInfo'].id != socket.id)        
       })
     }) 
-  }
- 
 
-  disConnect(socket) {
-    
-    console.log(`${socket["userInfo"].nick} 退出`);
-
-    this.socket['client'] = this.socket['client'].filter( client => client['userInfo'].id != socket['userInfo'].id )
-    
-    
   }
-  joinRoom(socket: io.Socket, data) {
+
+  join(socket: io.Socket, data) {
+    console.log(data.payload);
+    
     const userInfo = {
       id: socket['userInfo'].id,
-      nick: data.userInfo.nick,
-      roomId: data.userInfo.roomId
+      nick: data.payload.nick,
+      roomId: data.payload.roomId
     }
     logger.info(`id=${userInfo.id} 的 ===》 ${userInfo.nick} 加入房间 ${userInfo.roomId}`)
 
     socket['userInfo'] = userInfo
         
-    const roomUserList = this.getRoomUserList(userInfo.roomId)
+    const roomUserList = this.getRoomUserList(userInfo.roomId, userInfo)
     
 
-    this.sendToRoom(userInfo, 
-      {
+    socket.send( 
+      JSON.stringify(      {
         type: "roomInfo",
         payload: {
-          roomUserList: roomUserList,
+          users: roomUserList,
           userInfo: userInfo
         }
-      } 
+      } )
     )
 
   }
 
-  getRoomUserList (roomId) {    
+  getRoomUserList (roomId,userInfo) {    
     return Array.from(this.socket['client'])
     .map( client => client['userInfo'])
     .filter( userInfo => userInfo.roomId == roomId)
+    .filter(user => user.id !== userInfo.id)
   }
 
- 
   sendToRoom (userInfo, data) {
     this.socket['client'].forEach( client => {
       if (client['userInfo']['roomId'] == userInfo.roomId ) {        
@@ -106,8 +98,8 @@ export default class SocketServer {
   }
 
   sendToUser (receiveId, data  ) {
-    this.socket['client'].forEach( client => {
-      if (client['userInfo']['userId'] == receiveId) {
+    this.socket['client'].forEach( client => {      
+      if (client['userInfo']['id'] == receiveId) {
         client.send(JSON.stringify(data))
       }
     });
@@ -125,23 +117,24 @@ export default class SocketServer {
    */
 
   offer (socket, message) {
+    
     this.sendToUser(message.receiveId, {
       ...message,
-      senderInfo: socket['userInfo']
+      userInfo: socket['userInfo']
     })
   }
 
-  answer (socket, message) {
+  answer (socket, message) {    
     this.sendToUser( message.receiveId, {
       ...message,
-      senderInfo: socket['userInfo']
+      userInfo: socket['userInfo']
     })
   }
 
-  icecandidate (socket, message) {
+  icecandidate (socket, message) {    
     this.sendToUser( message.receiveId, {
       ...message,
-      senderInfo: socket['userInfo']
+      userInfo: socket['userInfo']
     })
   }
 
