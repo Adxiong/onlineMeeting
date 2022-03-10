@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-18 18:15:48
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-07 17:41:50
+ * @LastEditTime: 2022-03-11 00:12:11
  */
 import { Button } from 'antd'
 import React, { FC, useContext, useReducer, createContext, Dispatch, Children} from 'react'
@@ -32,9 +32,10 @@ const reducer = (state: StateType, actions: {type: string, payload: any}) => {
         roomId: actions.payload.roomId
       }
     case "setUserInfoList":
-      state.userInfoList = actions.payload
+      const newUsers = [...state.userInfoList, ...actions.payload]
       return {
-        ...state
+        ...state,
+        userInfoList: newUsers
       }
     case "setSocket":
       return {

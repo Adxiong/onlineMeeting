@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-10 00:04:05
+ * @LastEditTime: 2022-03-10 23:36:48
  */
 import { JoinParam, Message, PeerInfo } from './@types/index';
 import SocketClient from "./socket";
@@ -79,6 +79,7 @@ export default class RTCPeer {
     this.addPeer(peer)
     
     peer.connect()
+    return peer
   }
 
   level () {    
@@ -115,6 +116,8 @@ export default class RTCPeer {
       const tracks = stream.getTracks()
       let trackTag = tracks.map(track => `[user/${track.id}]`).join('')
       this.local.trackTag = trackTag      
+      console.log("local peer =====>", this.local.peers);
+      
       this.local.peers.forEach( peer => {
         tracks.forEach( track => {
           peer.addTrack(track, stream)

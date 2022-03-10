@@ -4,26 +4,30 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-10 00:20:38
+ * @LastEditTime: 2022-03-10 23:43:51
  */
 
+import EventEmitter from "eventemitter3"
 import RTCPeer from "."
 import Video from "../pages/video/video"
 import { Media, Message } from "./@types"
 
 export default class Peer {
   id: string
+  nick: string
   public media: Media = {}
   private peerConnection: RTCPeerConnection
   private rtcPeerInstance: RTCPeer
   private isPeerConnected: boolean = false
   private dataChannel?: RTCDataChannel
+  private eventBus: EventEmitter = new EventEmitter()
   constructor (
     id: string,
     nick: string,
     peerconfig: RTCConfiguration,
     rtcPeerInstance: RTCPeer) {
     this.id = id
+    this.nick = nick
     this.peerConnection = new RTCPeerConnection(peerconfig)
     this.rtcPeerInstance = rtcPeerInstance
     this.initPeerEvents()
@@ -42,7 +46,8 @@ export default class Peer {
         this.isPeerConnected = true        
         resolve("连接成功")
         //发送连接事件
-        this.rtcPeerInstance.emit('connect', this)
+        this.rtcPeerInstance.emit('connected', this)
+        
         this.initDataChannelEvents(dc)
 
       })
@@ -127,7 +132,8 @@ export default class Peer {
       const setUserStream = () => {
         if (!this.media.user || this.media.user.id != stream.id) {
           peer.media.user = stream
-          peer.rtcPeerInstance.emit('track', this)
+          // peer.rtcPeerInstance.emit('track', this)
+          peer.emit("userTrack", this)          
         } 
       }
       const setDisplayStram = () => {
@@ -148,9 +154,7 @@ export default class Peer {
     pc.addEventListener('negotiationneeded', () => {      
       pc.createOffer()
       .then( offer => {
-        offer.sdp = this.setTrackTagToSdp(offer.sdp, this.rtcPeerInstance.local.trackTag)
-        console.log("offer", offer.sdp);
-        
+        offer.sdp = this.setTrackTagToSdp(offer.sdp, this.rtcPeerInstance.local.trackTag)        
         pc.setLocalDescription(offer).then( () => {
           this.rtcPeerInstance.emit('negotiationneeded:done', this)
           this.rtcPeerInstance.signalSend({
@@ -162,9 +166,7 @@ export default class Peer {
       })
     })
 
-    pc.addEventListener('datachannel', (event) => {
-      console.log("触发 datachannel");
-      
+    pc.addEventListener('datachannel', (event) => {      
       const dc = event.channel
       this.dataChannel = dc
       this.isPeerConnected = true
@@ -202,4 +204,13 @@ export default class Peer {
   close() {
     
   }
+
+  on(event: string | symbol, fn: (...args: any[]) => void, context?: any) {
+    this.eventBus.on(event, fn, context)
+  }
+
+  emit(event: string | symbol, ...args: any[]) {
+    this.eventBus.emit(event, ...args)
+  }
+
 }

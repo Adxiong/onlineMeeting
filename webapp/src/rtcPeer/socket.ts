@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-09 01:16:00
+ * @LastEditTime: 2022-03-11 00:23:01
  */
 import RTCPeer  from '.';
 import * as io from 'socket.io-client';
@@ -95,10 +95,23 @@ export default class SocketClient {
     }
   }
 
-  join(message: Message) {
-
-  } 
-
+  newUserJoin(message: Message) {
+    if(message.userInfo) {
+      const {id} = message.userInfo
+      console.log(id);
+      
+      // const peer = this.peer.findPeer(id)  
+      // console.log(peer);
+      
+      // if( peer) {
+      //   peer.emit('userTrack', peer)
+      // }
+      // this.peer.emit('joinRoom', peer)
+      this.peer.emit('roomInfo', [message.userInfo])
+      
+    }
+  }
+  
   level(message: Message){
     if(message.type === 'level' && message.userInfo){
       const {id, nick} = message.userInfo

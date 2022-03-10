@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-10 00:21:34
+ * @LastEditTime: 2022-03-11 00:26:35
  */
 
 
@@ -22,6 +22,9 @@ import RTCPeer from '../../rtcPeer'
 import util from '../../utils/util'
 import { Local, PeerInfo } from '../../rtcPeer/@types'
 import { url } from 'inspector'
+import { usePeerUser } from '../../hooks/peer'
+import { PeerVideo } from '../../components/PeerVideo'
+import Peer from '../../rtcPeer/peer'
 
 const Room: FC = () => {
   const params = useParams()
@@ -30,7 +33,7 @@ const Room: FC = () => {
   const localVideoRef = useRef<HTMLVideoElement>( null)
   const remoteVideoRef = useRef<HTMLVideoElement | null>(null)
   const [ peer, setPeer ] = useState<RTCPeer>()
-  
+  const [peers, setPeers] = useState<Peer[]>([])
   const constraints = {
     video:  true,
     audio: true,
@@ -39,14 +42,16 @@ const Room: FC = () => {
   
   useEffect( () => {
     const peer = new RTCPeer({signalServer:"http://localhost:8000", peerConfig:{}})
+    
     const nick = searchParam.get('nick') 
     const roomId = searchParam.get('roomId')
     if ( !nick || !roomId) {
       message.error('nick或者roomid为空！')
       return
     }
-    peer.on('connect', (peer) => {
-      console.log("peer===>",peer);
+    peer.on('connected', (peer) => {
+      setPeers([...peers, peer])
+
     })
     peer.on('roomInfo', (roomInfo) => {
       console.log("roomIno===>",roomInfo);
@@ -54,26 +59,15 @@ const Room: FC = () => {
         type: "setUserInfoList",
         payload: roomInfo
       })
+      // setPeers()
     })
-    peer.on('join', (data) => {
-      console.log(`join===>${data}`);
-      
+    peer.on('joinRoom', (peer) => {
+      setPeers([...peers, peer])
     })
-    peer.on('track', (data) => {
-      console.log("track",data);
-      
-        const ele = document.getElementById(data.id)
-        // console.log(data.media.user);
-        
-        ele.srcObject = data.media.user
-    
-      
-    })
-    // peer.connectPeer({id, nick})
     peer.join({roomId,nick})
     setPeer(()=>peer)
   }, [])
-
+  
   const openCamera = async() => {
     if ( peer && localVideoRef.current ) {
       const local: Local = await peer.shareUser({video: true, audio: true})
@@ -95,13 +89,17 @@ const Room: FC = () => {
             <span></span>
           </div>          
           <div>
-            {
-              peer && peer.local.peers.map( peer => {                
+         { 
+            
+            
+            peer?.local.peers.map( peer => {                
                 return (
-                  <div key={peer.id}>
-                    {peer.id}
-                    <video src="" id={peer.id}  autoPlay muted width={200} height={200}></video>
-                  </div>
+                  
+                  <PeerVideo key={peer.id} peer={peer} />
+                  // <div key={peer.id}>
+                  //   {peer.id}
+                  //   <video src="" id={peer.id}  autoPlay muted width={200} height={200}></video>
+                  // </div>
                 )
               })
             }

@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-01 19:27:10
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-01 21:56:08
+ * @LastEditTime: 2022-03-10 23:44:46
  */
 
 import { Avatar } from 'antd'
@@ -14,9 +14,7 @@ import styles from './styles/userList.module.less'
 
 const UserList: FC = () => {
 
-  const { store, dispatch } = useContext(StoreContext)
-  console.log("store改变",store);
-  
+  const { store, dispatch } = useContext(StoreContext)  
   return (
     <div className={styles.UserListPanel}>
       {
