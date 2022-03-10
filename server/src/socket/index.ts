@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 17:03:21
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-09 17:44:22
+ * @LastEditTime: 2022-03-10 23:45:57
  */
 
 
@@ -49,7 +49,6 @@ export default class SocketServer {
 
   join(socket: io.Socket, data) {
     console.log(data.payload);
-    
     const userInfo = {
       id: socket['userInfo'].id,
       nick: data.payload.nick,
@@ -61,17 +60,22 @@ export default class SocketServer {
         
     const roomUserList = this.getRoomUserList(userInfo.roomId, userInfo)
     
-
     socket.send( 
       JSON.stringify(      {
         type: "roomInfo",
         payload: {
           users: roomUserList,
-          userInfo: userInfo
+          userInfo
         }
       } )
     )
 
+    this.boradCaseToRoom(userInfo,JSON.stringify(      {
+      type: "newUserJoin",
+      payload: {},
+      userInfo
+    } )
+    )
   }
 
   getRoomUserList (roomId,userInfo) {    
