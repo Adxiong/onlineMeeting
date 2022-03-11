@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-11 16:55:40
+ * @LastEditTime: 2022-03-12 00:33:50
  */
 import RTCPeer  from '.';
 import * as io from 'socket.io-client';
@@ -36,6 +36,9 @@ export default class SocketClient {
     this.socket.on("connect", () => {
       this.socket?.on("message", (message) => {
         this.handle(message)
+      })
+      this.socket?.on("disconnect", () => {
+        console.log("页面刷新");
       })
     })
   }
@@ -104,6 +107,7 @@ export default class SocketClient {
   }
   
   level(message: Message){
+    
     if(message.type === 'level' && message.userInfo){
       const {id, nick} = message.userInfo
       const peer = this.peer.findPeer(id)
@@ -112,7 +116,7 @@ export default class SocketClient {
         this.peer.local.peers = this.peer.local.peers.filter( p => p.id != id)
       }
 
-      this.peer.emit("level",message)
+      this.peer.emit("level",this.peer.local.peers)
 
     }
   }
@@ -132,7 +136,11 @@ export default class SocketClient {
   }
 
   close(){
-    console.log('断开操作');
+    this.socket?.emit('level', {
+      id: this.peer.local.id,
+      nick: this.peer.local.nick,
+      roomId: this.peer.local.roomId
+    })
     this.socket?.close()
   }
 }

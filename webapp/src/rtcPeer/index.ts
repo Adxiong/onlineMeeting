@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-11 17:06:18
+ * @LastEditTime: 2022-03-12 00:08:32
  */
 import { JoinParam, Message, PeerInfo } from './@types/index';
 import SocketClient from "./socket";
@@ -90,7 +90,11 @@ export default class RTCPeer {
       peer.close()
     })
     this.local.peers = []
-    this.ws?.close()
+    this.ws?.close({
+      id: this.local.id,
+      nick: this.local.nick,
+      roomId: this.local.roomId
+    })
     delete this.ws
     this.eventBus.removeAllListeners()
   }

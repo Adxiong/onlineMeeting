@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-11 16:48:38
+ * @LastEditTime: 2022-03-11 23:57:34
  */
 
 import EventEmitter from "eventemitter3"
@@ -201,7 +201,9 @@ export default class Peer {
     this.dataChannel?.send(message)
   }
   close() {
-    
+    this.peerConnection.close()
+    this.isPeerConnected = false
+    this.eventBus.removeAllListeners()
   }
 
   on(event: string | symbol, fn: (...args: any[]) => void, context?: any) {

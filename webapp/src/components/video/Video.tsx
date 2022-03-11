@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-10 13:21:56
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-11 17:24:10
+ * @LastEditTime: 2022-03-12 00:38:07
  */
 
 import { Avatar } from 'antd'
@@ -31,7 +31,7 @@ export const PeerVideo = ({peer}: {peer: Peer}) => {
         userStream ? (
           <video ref={userRef} autoPlay width={200} height={200}></video>
         ) : (
-          <Avatar>{peer.nick}</Avatar>
+          <Avatar style={{width: 200, height:200}}>{peer.nick}</Avatar>
         )
       }
       <div>

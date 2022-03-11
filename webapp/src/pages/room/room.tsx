@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-11 17:24:59
+ * @LastEditTime: 2022-03-12 00:37:35
  */
 
 
@@ -34,6 +34,7 @@ const Room: FC = () => {
   }
   
   useEffect( () => {
+
     const peer = new RTCPeer({signalServer:"http://localhost:8000", peerConfig:{}})
     
     const nick = searchParam.get('nick') 
@@ -48,9 +49,13 @@ const Room: FC = () => {
       setPeers([...peers])
     })
 
+    peer.on("level",(peers) => {      
+      setPeers([...peers])
+    })
     peer.join({roomId,nick})
     setPeer(()=>peer)
   }, [])
+
   
   const openCamera = async() => {
     if ( peer && localVideoRef.current ) {
