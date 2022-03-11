@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-10 23:36:48
+ * @LastEditTime: 2022-03-11 17:06:18
  */
 import { JoinParam, Message, PeerInfo } from './@types/index';
 import SocketClient from "./socket";
@@ -69,7 +69,7 @@ export default class RTCPeer {
   }
 
 
-  connectPeer (peerInfo: PeerInfo) {
+  connectPeer (peerInfo: PeerInfo) {    
     const peer = new Peer(
       peerInfo.id,
       peerInfo.nick,
@@ -77,7 +77,6 @@ export default class RTCPeer {
       this
     )
     this.addPeer(peer)
-    
     peer.connect()
     return peer
   }
@@ -99,6 +98,7 @@ export default class RTCPeer {
   
   addPeer (peer: Peer) {
     this.local.peers.push(peer)
+    this.emit('addPeer', this.local.peers)
   }
 
   findPeer (id: string) {
@@ -115,9 +115,7 @@ export default class RTCPeer {
       local.media.user = stream
       const tracks = stream.getTracks()
       let trackTag = tracks.map(track => `[user/${track.id}]`).join('')
-      this.local.trackTag = trackTag      
-      console.log("local peer =====>", this.local.peers);
-      
+      this.local.trackTag = trackTag            
       this.local.peers.forEach( peer => {
         tracks.forEach( track => {
           peer.addTrack(track, stream)

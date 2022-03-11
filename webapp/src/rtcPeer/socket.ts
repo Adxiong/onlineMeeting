@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-11 00:23:01
+ * @LastEditTime: 2022-03-11 16:55:40
  */
 import RTCPeer  from '.';
 import * as io from 'socket.io-client';
@@ -98,16 +98,7 @@ export default class SocketClient {
   newUserJoin(message: Message) {
     if(message.userInfo) {
       const {id} = message.userInfo
-      console.log(id);
-      
-      // const peer = this.peer.findPeer(id)  
-      // console.log(peer);
-      
-      // if( peer) {
-      //   peer.emit('userTrack', peer)
-      // }
-      // this.peer.emit('joinRoom', peer)
-      this.peer.emit('roomInfo', [message.userInfo])
+      // this.peer.emit('roomInfo', [message.userInfo])
       
     }
   }

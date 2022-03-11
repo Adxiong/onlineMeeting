@@ -4,26 +4,19 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-11 00:26:35
+ * @LastEditTime: 2022-03-11 17:24:59
  */
 
 
-import { Button, message } from 'antd'
-import { createRef, FC, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { Button, Divider, message } from 'antd'
+import {  FC, useContext, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
-import { Socket } from 'socket.io-client'
 import Chat from '../../components/chat/chat'
-import SocketClient from '../../rtcPeer/socket'
 import { StoreContext } from '../../store/store'
-import Video from '../video/video'
 import style from './styles/room.module.less'
-import UserListComponent from '../../components/userList/userList'
 import RTCPeer from '../../rtcPeer'
-import util from '../../utils/util'
-import { Local, PeerInfo } from '../../rtcPeer/@types'
-import { url } from 'inspector'
-import { usePeerUser } from '../../hooks/peer'
-import { PeerVideo } from '../../components/PeerVideo'
+import { Local } from '../../rtcPeer/@types'
+import { PeerVideo } from '../../components/video/Video'
 import Peer from '../../rtcPeer/peer'
 
 const Room: FC = () => {
@@ -50,20 +43,11 @@ const Room: FC = () => {
       return
     }
     peer.on('connected', (peer) => {
-      setPeers([...peers, peer])
+    })
+    peer.on("addPeer", (peers) => {
+      setPeers([...peers])
+    })
 
-    })
-    peer.on('roomInfo', (roomInfo) => {
-      console.log("roomIno===>",roomInfo);
-      dispatch({
-        type: "setUserInfoList",
-        payload: roomInfo
-      })
-      // setPeers()
-    })
-    peer.on('joinRoom', (peer) => {
-      setPeers([...peers, peer])
-    })
     peer.join({roomId,nick})
     setPeer(()=>peer)
   }, [])
@@ -83,6 +67,7 @@ const Room: FC = () => {
       <div className={style.videoArea}>
         <div className={style.personVideo}>
           <div className={style.videoEle}>
+            <span>{peer?.local.nick} - {peer?.local.id}</span>
             <video src="" ref={localVideoRef} autoPlay muted width={200} height={200}></video>
           </div>
           <div className={style.personName}>
@@ -90,11 +75,8 @@ const Room: FC = () => {
           </div>          
           <div>
          { 
-            
-            
-            peer?.local.peers.map( peer => {                
+            peers.map( peer => {                
                 return (
-                  
                   <PeerVideo key={peer.id} peer={peer} />
                   // <div key={peer.id}>
                   //   {peer.id}
@@ -115,9 +97,7 @@ const Room: FC = () => {
           <Button onClick={openCamera}>打开摄像头</Button>
           <Button>屏幕共享</Button>
         </div>
-        {params.roomId}
         </div>
-        <UserListComponent/>
       <Chat></Chat>
     </div>
  ) 

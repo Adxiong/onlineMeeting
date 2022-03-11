@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-10 23:43:51
+ * @LastEditTime: 2022-03-11 16:48:38
  */
 
 import EventEmitter from "eventemitter3"
@@ -132,7 +132,6 @@ export default class Peer {
       const setUserStream = () => {
         if (!this.media.user || this.media.user.id != stream.id) {
           peer.media.user = stream
-          // peer.rtcPeerInstance.emit('track', this)
           peer.emit("userTrack", this)          
         } 
       }
