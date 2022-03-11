@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 17:03:21
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-10 23:45:57
+ * @LastEditTime: 2022-03-12 00:32:35
  */
 
 
@@ -41,7 +41,14 @@ export default class SocketServer {
       })
 
       socket.on('disconnect', () => {
+        console.log("断开链接===》",socket);
+        
         this.socket['client'] = this.socket['client'].filter( client => client['userInfo'].id != socket.id)        
+        this.boradCaseToRoom(socket['userInfo'], JSON.stringify({
+          type: 'level',
+          userInfo: socket['userInfo'],
+        })) 
+
       })
     }) 
 
