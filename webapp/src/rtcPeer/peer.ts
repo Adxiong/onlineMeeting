@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-11 23:57:34
+ * @LastEditTime: 2022-03-12 22:15:09
  */
 
 import EventEmitter from "eventemitter3"
@@ -128,11 +128,11 @@ export default class Peer {
       const peer = this
       const stream = event.streams[0]      
       const sdp = event.target.remoteDescription.sdp.toString()
-      
+
       const setUserStream = () => {
         if (!this.media.user || this.media.user.id != stream.id) {
           peer.media.user = stream
-          peer.emit("userTrack", this)          
+          peer.emit("remoteStream", stream)    
         } 
       }
       const setDisplayStram = () => {
@@ -204,6 +204,10 @@ export default class Peer {
     this.peerConnection.close()
     this.isPeerConnected = false
     this.eventBus.removeAllListeners()
+  }
+
+  removeListener(event: string | symbol) {
+    this.eventBus.removeListener(event)
   }
 
   on(event: string | symbol, fn: (...args: any[]) => void, context?: any) {

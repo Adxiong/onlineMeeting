@@ -4,11 +4,11 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-12 00:37:35
+ * @LastEditTime: 2022-03-12 22:36:09
  */
 
 
-import { Button, Divider, message } from 'antd'
+import { Avatar, Button, Divider, message } from 'antd'
 import {  FC, useContext, useEffect, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import Chat from '../../components/chat/chat'
@@ -44,6 +44,8 @@ const Room: FC = () => {
       return
     }
     peer.on('connected', (peer) => {
+      console.log(peer);
+      
     })
     peer.on("addPeer", (peers) => {
       setPeers([...peers])
@@ -58,9 +60,8 @@ const Room: FC = () => {
 
   
   const openCamera = async() => {
-    if ( peer && localVideoRef.current ) {
-      const local: Local = await peer.shareUser({video: true, audio: true})
-      localVideoRef.current.srcObject = local.media.user!
+    if ( peer) {
+      await peer.shareUser({video: true, audio: true})         
     }
   }
 
@@ -70,40 +71,39 @@ const Room: FC = () => {
   return (
     <div className={style.roomPanel}>
       <div className={style.videoArea}>
-        <div className={style.personVideo}>
-          <div className={style.videoEle}>
-            <span>{peer?.local.nick} - {peer?.local.id}</span>
-            <video src="" ref={localVideoRef} autoPlay muted width={200} height={200}></video>
-          </div>
-          <div className={style.personName}>
-            <span></span>
-          </div>          
+        <div className={style.userList}> 
+        
+        
+        
           <div>
-         { 
-            peers.map( peer => {                
-                return (
-                  <PeerVideo key={peer.id} peer={peer} />
-                  // <div key={peer.id}>
-                  //   {peer.id}
-                  //   <video src="" id={peer.id}  autoPlay muted width={200} height={200}></video>
-                  // </div>
-                )
-              })
-            }
+            <PeerVideo key={peer?.local.id} rtcPeer={peer}></PeerVideo>
+            <Button>静音</Button>
+            {/* <Button onClick={toogleLocalCamera}>
+              {
+                localMediaStatus ? "关闭摄像头" : "开启摄像头"
+              }
+            </Button> */}
+            <Button onClick={openCamera}>打开摄像头</Button>
+            <Button>屏幕共享</Button>
           </div>
+        
+          {  
+            peers.map( peer => {                
+              return (
+                <PeerVideo key={peer.id} peer={peer} />
+                // <div key={peer.id}>
+                //   {peer.id}
+                //   <video src="" id={peer.id}  autoPlay muted width={200} height={200}></video>
+                // </div>
+              )
+            })
+          }
+    
+        
         </div>
-        <div>
-          <Button>静音</Button>
-          {/* <Button onClick={toogleLocalCamera}>
-            {
-              localMediaStatus ? "关闭摄像头" : "开启摄像头"
-            }
-          </Button> */}
-          <Button onClick={openCamera}>打开摄像头</Button>
-          <Button>屏幕共享</Button>
-        </div>
-        </div>
+      </div>
       <Chat></Chat>
+    
     </div>
  ) 
 }

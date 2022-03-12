@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-12 00:08:32
+ * @LastEditTime: 2022-03-12 22:11:55
  */
 import { JoinParam, Message, PeerInfo } from './@types/index';
 import SocketClient from "./socket";
@@ -90,11 +90,7 @@ export default class RTCPeer {
       peer.close()
     })
     this.local.peers = []
-    this.ws?.close({
-      id: this.local.id,
-      nick: this.local.nick,
-      roomId: this.local.roomId
-    })
+    this.ws?.close()
     delete this.ws
     this.eventBus.removeAllListeners()
   }
@@ -125,6 +121,7 @@ export default class RTCPeer {
           peer.addTrack(track, stream)
         }) 
       })
+      this.emit('localStream', stream)
       return local
     })
     .catch( err => {
@@ -177,6 +174,11 @@ export default class RTCPeer {
   emit(event: string | symbol, ...args: any[]) {
     this.eventBus.emit(event, ...args)
   }
+
+  removeListener(event: string | symbol) {
+    this.eventBus.removeListener(event)
+  }
+
 
   signalSend(message: Message) {
     if (this.ws) {

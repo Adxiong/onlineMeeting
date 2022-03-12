@@ -4,14 +4,13 @@
  * @Author: Adxiong
  * @Date: 2022-02-11 13:06:54
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-16 17:21:14
+ * @LastEditTime: 2022-03-12 14:21:07
  */
 
 import { FC } from 'react'
 import { useRoutes, Outlet, Navigate } from 'react-router-dom';
 import NotFound from '../pages/NotFound';
 import Login from '../pages/login/login';
-import Video from '../pages/video/video';
 import Room from '../pages/room/room';
 
 export interface RoutesType  {
@@ -32,10 +31,6 @@ const Routes: RoutesType[] = [
   {
     path: '/room/:roomId',
     element: <Room/>
-  },
-  {
-    path: '/video',
-    element: <Video/>
   },
   {
     path: '/404',
