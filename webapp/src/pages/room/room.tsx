@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-12 22:36:09
+ * @LastEditTime: 2022-03-13 22:38:56
  */
 
 
@@ -20,22 +20,22 @@ import { PeerVideo } from '../../components/video/Video'
 import Peer from '../../rtcPeer/peer'
 
 const Room: FC = () => {
-  const params = useParams()
   const [searchParam, setSearchParam] = useSearchParams()
   const { store, dispatch } = useContext(StoreContext)
-  const localVideoRef = useRef<HTMLVideoElement>( null)
-  const remoteVideoRef = useRef<HTMLVideoElement | null>(null)
   const [ peer, setPeer ] = useState<RTCPeer>()
   const [peers, setPeers] = useState<Peer[]>([])
-  const constraints = {
-    video:  true,
-    audio: true,
-    // echoCancellation: true
-  }
   
   useEffect( () => {
 
-    const peer = new RTCPeer({signalServer:"http://localhost:8000", peerConfig:{}})
+    const peer = new RTCPeer({signalServer:"http://192.168.123.40:8000", peerConfig:{
+      iceServers:[
+        {
+          urls:"turn:150.158.187.252:3478",
+          username:"adxiong",
+          credential: "0417.xyl"
+        }
+      ]
+    }})
     
     const nick = searchParam.get('nick') 
     const roomId = searchParam.get('roomId')
@@ -78,11 +78,6 @@ const Room: FC = () => {
           <div>
             <PeerVideo key={peer?.local.id} rtcPeer={peer}></PeerVideo>
             <Button>静音</Button>
-            {/* <Button onClick={toogleLocalCamera}>
-              {
-                localMediaStatus ? "关闭摄像头" : "开启摄像头"
-              }
-            </Button> */}
             <Button onClick={openCamera}>打开摄像头</Button>
             <Button>屏幕共享</Button>
           </div>
@@ -91,10 +86,6 @@ const Room: FC = () => {
             peers.map( peer => {                
               return (
                 <PeerVideo key={peer.id} peer={peer} />
-                // <div key={peer.id}>
-                //   {peer.id}
-                //   <video src="" id={peer.id}  autoPlay muted width={200} height={200}></video>
-                // </div>
               )
             })
           }
@@ -102,7 +93,9 @@ const Room: FC = () => {
         
         </div>
       </div>
-      <Chat></Chat>
+      {
+        peer && <Chat peer={peer}/>
+      }
     
     </div>
  ) 

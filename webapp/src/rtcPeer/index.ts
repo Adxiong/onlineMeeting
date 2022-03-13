@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-12 22:11:55
+ * @LastEditTime: 2022-03-13 22:15:21
  */
 import { JoinParam, Message, PeerInfo } from './@types/index';
 import SocketClient from "./socket";
@@ -110,8 +110,9 @@ export default class RTCPeer {
     audio: true
   }) {
     const { local } = this
+    
     return navigator.mediaDevices.getUserMedia(constraints)
-    .then( stream => {
+    .then( stream => {      
       local.media.user = stream
       const tracks = stream.getTracks()
       let trackTag = tracks.map(track => `[user/${track.id}]`).join('')
@@ -188,14 +189,14 @@ export default class RTCPeer {
     }
   }
 
-  peerSend(message: string){
+  send(message: string){
     const userInfo: PeerInfo = {
       id: this.local.id,
       nick: this.local.nick
     }
 
     this.local.peers.forEach( peer => {
-      peer.peerSend(JSON.stringify({
+      peer.send(JSON.stringify({
         userInfo,
         message
       }))

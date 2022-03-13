@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-10 13:21:56
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-12 22:55:57
+ * @LastEditTime: 2022-03-12 23:22:01
  */
 
 import { Avatar } from 'antd'
@@ -46,7 +46,7 @@ export const PeerVideo = ({peer, rtcPeer}: {peer?: Peer, rtcPeer?: RTCPeer}) => 
 
       {
         userStream ? (
-          <video ref={userRef} autoPlay controls width={200} height={200}></video>
+          <video ref={userRef} autoPlay muted controls width={200} height={200}></video>
         ) : (
           <Avatar size={200} >{peer?.nick || rtcPeer?.local.nick}</Avatar>
         )

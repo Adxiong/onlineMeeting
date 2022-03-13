@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-08 20:38:43
+ * @LastEditTime: 2022-03-13 17:24:59
  */
 
 import { Input } from 'antd'
@@ -12,12 +12,14 @@ import { FC, useContext, useEffect, useState } from 'react'
 import { StoreContext } from '../../store/store'
 import styles from './styles/chat.module.less'
 import Message from './message'
+import RTCPeer from '../../rtcPeer'
 
-const Chat: FC = () => {
+const Chat = ({peer}: {peer: RTCPeer}) => {
   const [message, setMessage] = useState<any[]>([])
-  const { store, dispatch } = useContext(StoreContext)
   useEffect( () => {
-    store.client && store.client.on('message', (data: string) => {                  
+    peer.on('message:dc', (data: string) => {         
+      console.log(data);
+               
       setMessage((message) => {
         return [
           ...message,
@@ -25,14 +27,10 @@ const Chat: FC = () => {
         ]
       })
     })
-  }, [store])
+  }, [peer])
 
   const sendMessage = (value: string) => {
-    // store.client && store.client.sendMessage({
-    //   type: 'group',
-    //   send: store.name,
-    //   message
-    // })
+    peer.send(value)
     setMessage( (state) => {
       console.log(value);
       

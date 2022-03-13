@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-12 22:15:09
+ * @LastEditTime: 2022-03-13 17:24:31
  */
 
 import EventEmitter from "eventemitter3"
@@ -96,8 +96,7 @@ export default class Peer {
 
   initDataChannelEvents (dc: RTCDataChannel) {
     dc.onmessage = (event) => {
-      console.log("dc-message ====>",event);
-      
+      this.rtcPeerInstance.emit('message:dc', event.data)
     }
 
     dc.close = () => {
@@ -169,7 +168,7 @@ export default class Peer {
       const dc = event.channel
       this.dataChannel = dc
       this.isPeerConnected = true
-      this.rtcPeerInstance.emit('join', this)
+      // this.rtcPeerInstance.emit('join', this)
     })
   }
 
@@ -197,7 +196,7 @@ export default class Peer {
     this.peerConnection.addTrack(track, ...streams)
   }
 
-  peerSend (message: string) {
+  send(message: string) {
     this.dataChannel?.send(message)
   }
   close() {
