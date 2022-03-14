@@ -4,20 +4,16 @@
  * @Author: Adxiong
  * @Date: 2022-02-19 15:16:53
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-19 15:34:21
+ * @LastEditTime: 2022-03-14 17:39:09
  */
 
 import { Avatar } from 'antd'
 import { FC } from 'react'
+import { DcMessage } from '../../rtcPeer/@types'
 import style from './styles/message.module.less'
 
 interface Props {
-  message: {
-    type: string,
-    send: string,
-    content: string,
-    date: number
-  }[]
+  message: DcMessage[]
 }
 
 const Message: FC<Props> = (props) => {
@@ -25,10 +21,10 @@ const Message: FC<Props> = (props) => {
     <div className={style.messagePanel}>
       {
         props.message.map( item => (
-          <div className={style.messageItem} key={item.send + item.date}>
-            <Avatar className={style.avatar} size={40}>{item.send}</Avatar>
+          <div className={style.messageItem} key={item.sendId + item.sendTime}>
+            <Avatar className={style.avatar} size={40}>{item.sendNick}</Avatar>
             <div className={style.messageContent}>
-              <div className={style.name}>{item.send}</div>
+              <div className={style.name}>{item.sendNick}</div>
               <div className={style.content}>{item.content}</div>
             </div>
           </div>

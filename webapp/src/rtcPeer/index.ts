@@ -4,9 +4,9 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-13 22:15:21
+ * @LastEditTime: 2022-03-14 17:30:44
  */
-import { JoinParam, Message, PeerInfo } from './@types/index';
+import { DcMessage, JoinParam, Message, PeerInfo } from './@types/index';
 import SocketClient from "./socket";
 import { Local } from './@types/index';
 import Peer from './peer';
@@ -189,17 +189,10 @@ export default class RTCPeer {
     }
   }
 
-  send(message: string){
-    const userInfo: PeerInfo = {
-      id: this.local.id,
-      nick: this.local.nick
-    }
-
+  send(message: DcMessage){
+    const sendMessage = JSON.stringify(message)
     this.local.peers.forEach( peer => {
-      peer.send(JSON.stringify({
-        userInfo,
-        message
-      }))
+      peer.send(sendMessage)
     })
   }
 }

@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:13:58
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-11 15:40:05
+ * @LastEditTime: 2022-03-14 17:31:20
  */
 
 import Peer from "../peer";
@@ -45,6 +45,14 @@ interface payloadMap {
   icecandidate: RTCIceCandidateInit
   level: PeerInfo
   
+}
+
+export interface DcMessage {
+  [propName: string]: any
+  sendId: string,
+  sendNick: string,
+  content: string,
+  sendTime: string
 }
 
 export type Message  = {

@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-12 00:33:50
+ * @LastEditTime: 2022-03-14 21:32:57
  */
 import RTCPeer  from '.';
 import * as io from 'socket.io-client';
@@ -74,6 +74,7 @@ export default class SocketClient {
           this.peer
         )
         this.peer.addPeer(peer)
+        // peer.connect()
         this.peer.pushLocalStream(peer)
       }
       
@@ -101,8 +102,7 @@ export default class SocketClient {
   newUserJoin(message: Message) {
     if(message.userInfo) {
       const {id} = message.userInfo
-      // this.peer.emit('roomInfo', [message.userInfo])
-      
+      // this.peer.emit('roomInfo', [message.userInfo])      
     }
   }
   

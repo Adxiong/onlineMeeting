@@ -4,13 +4,12 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-13 17:24:31
+ * @LastEditTime: 2022-03-14 21:50:23
  */
 
 import EventEmitter from "eventemitter3"
 import RTCPeer from "."
-import Video from "../pages/video/video"
-import { Media, Message } from "./@types"
+import { DcMessage, Media, Message } from "./@types"
 
 export default class Peer {
   id: string
@@ -39,17 +38,17 @@ export default class Peer {
     } 
 
     const {peerConnection} = this
+    
     return new Promise( (resolve , reject) => {
       const dc = peerConnection.createDataChannel("DC")      
       dc.addEventListener('open', () => {        
         this.dataChannel = dc
-        this.isPeerConnected = true        
+        this.isPeerConnected = true
+                
         resolve("连接成功")
         //发送连接事件
         this.rtcPeerInstance.emit('connected', this)
         
-        this.initDataChannelEvents(dc)
-
       })
 
       setTimeout(() => {
@@ -93,19 +92,6 @@ export default class Peer {
       })
     }
   }
-
-  initDataChannelEvents (dc: RTCDataChannel) {
-    dc.onmessage = (event) => {
-      this.rtcPeerInstance.emit('message:dc', event.data)
-    }
-
-    dc.close = () => {
-      console.log("DC is close");
-      
-    }
-  }
-
-
 
 
   initPeerEvents () {
@@ -167,8 +153,10 @@ export default class Peer {
     pc.addEventListener('datachannel', (event) => {      
       const dc = event.channel
       this.dataChannel = dc
-      this.isPeerConnected = true
-      // this.rtcPeerInstance.emit('join', this)
+      this.isPeerConnected = true      
+      dc.onmessage = (event) => {
+        this.rtcPeerInstance.emit('message:dc', JSON.parse(event.data) as DcMessage)
+      }
     })
   }
 
