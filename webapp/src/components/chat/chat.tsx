@@ -4,11 +4,11 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-14 22:57:07
+ * @LastEditTime: 2022-03-15 00:04:04
  */
 
 import { Input } from 'antd'
-import { FC, useContext, useEffect, useState } from 'react'
+import { FC, useContext, useEffect, useRef, useState } from 'react'
 import { StoreContext } from '../../store/store'
 import styles from './styles/chat.module.less'
 import Message from './message'
@@ -18,10 +18,9 @@ import { DcMessage } from '../../rtcPeer/@types'
 const Chat = ({peer}: {peer: RTCPeer}) => {
   const [message, setMessage] = useState<DcMessage[]>([])
   const [textValue, setTextValue] = useState<string>("")
+  
   useEffect( () => {
-    peer.on('message:dc', (data: DcMessage) => {   
-      console.log(data);
-        
+    peer.on('message:dc', (data: DcMessage) => {           
       setMessage((message) => {
         return [
           ...message,
@@ -30,6 +29,7 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
       })
     })
   }, [peer])
+
 
   const sendMessage = (value: string) => {
     const messageData: DcMessage = {
