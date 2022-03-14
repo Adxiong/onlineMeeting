@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-14 16:37:17
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-14 21:32:57
+ * @LastEditTime: 2022-03-14 22:36:00
  */
 import RTCPeer  from '.';
 import * as io from 'socket.io-client';
@@ -74,7 +74,7 @@ export default class SocketClient {
           this.peer
         )
         this.peer.addPeer(peer)
-        // peer.connect()
+        peer.connect()
         this.peer.pushLocalStream(peer)
       }
       

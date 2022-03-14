@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-14 21:50:38
+ * @LastEditTime: 2022-03-14 22:57:07
  */
 
 import { Input } from 'antd'
@@ -19,7 +19,9 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
   const [message, setMessage] = useState<DcMessage[]>([])
   const [textValue, setTextValue] = useState<string>("")
   useEffect( () => {
-    peer.on('message:dc', (data: DcMessage) => {     
+    peer.on('message:dc', (data: DcMessage) => {   
+      console.log(data);
+        
       setMessage((message) => {
         return [
           ...message,
@@ -46,8 +48,16 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
   }
 
   const inputPressEnter = (e) => {
-    sendMessage(textValue)
-    setTextValue("")
+    if (e.keyCode === 13 && e.ctrlKey) {
+      setTextValue(textValue+"\n")
+      return
+    }
+    if (e.keyCode === 13) {
+      sendMessage(textValue)
+      setTextValue("")
+      e.preventDefault()
+    }
+
   }
 
   const inputChange = (e) => {

@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-14 21:50:23
+ * @LastEditTime: 2022-03-14 22:40:39
  */
 
 import EventEmitter from "eventemitter3"
@@ -150,10 +150,8 @@ export default class Peer {
       })
     })
 
-    pc.addEventListener('datachannel', (event) => {      
-      const dc = event.channel
-      this.dataChannel = dc
-      this.isPeerConnected = true      
+    pc.addEventListener('datachannel', (event) => {    
+      const dc = event.channel   
       dc.onmessage = (event) => {
         this.rtcPeerInstance.emit('message:dc', JSON.parse(event.data) as DcMessage)
       }
