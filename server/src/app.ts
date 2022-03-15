@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-10 22:01:58
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-02-14 22:59:41
+ * @LastEditTime: 2022-03-13 22:35:36
  */
 import * as express from 'express';
 import * as cookieParser from "cookie-parser";
@@ -29,6 +29,6 @@ app.use(bodyParser.json())
 app.use('/api', api)
 
 
-service.listen (config.port, () => {
+service.listen (config.port, "0.0.0.0", () => {
   logger.info(`listen on port ${config.port};\nclick http://localhost:${config.port} to visit server;`)
 })
