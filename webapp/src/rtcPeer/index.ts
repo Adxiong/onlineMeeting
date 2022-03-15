@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 14:52:39
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-14 17:30:44
+ * @LastEditTime: 2022-03-15 15:53:37
  */
 import { DcMessage, JoinParam, Message, PeerInfo } from './@types/index';
 import SocketClient from "./socket";
@@ -122,7 +122,7 @@ export default class RTCPeer {
           peer.addTrack(track, stream)
         }) 
       })
-      this.emit('localStream', stream)
+      this.emit('localStream', stream, 'user')
       return local
     })
     .catch( err => {
@@ -134,6 +134,8 @@ export default class RTCPeer {
     const { local } = this
     navigator.mediaDevices.getDisplayMedia(constraints)
     .then( stream => {
+      console.log(stream);
+      
       this.local.media.display = stream
       const tracks = stream.getTracks()
       let trackTag = tracks.map(track => `[display/${track.id}]`).join('')
@@ -144,6 +146,8 @@ export default class RTCPeer {
           peer.addTrack(track, stream)
         })
       })
+      this.emit("localStream", stream, 'display')
+      return local
     })
     .catch( err => {
       throw new Error(err)

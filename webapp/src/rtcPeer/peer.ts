@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-14 22:40:39
+ * @LastEditTime: 2022-03-15 15:49:59
  */
 
 import EventEmitter from "eventemitter3"
@@ -117,13 +117,13 @@ export default class Peer {
       const setUserStream = () => {
         if (!this.media.user || this.media.user.id != stream.id) {
           peer.media.user = stream
-          peer.emit("remoteStream", stream)    
+          peer.emit("remoteStream", stream, "user")    
         } 
       }
       const setDisplayStram = () => {
         if (!this.media.display || this.media.display.id != stream.id){
           this.media.display = stream
-          this.rtcPeerInstance.emit('stream:dispaly', this)
+          peer.emit('remoteStream', stream, "display")
         }
       }
 

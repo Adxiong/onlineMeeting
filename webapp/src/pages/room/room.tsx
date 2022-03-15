@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:17:22
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-14 14:00:33
+ * @LastEditTime: 2022-03-15 15:18:18
  */
 
 
@@ -65,6 +65,11 @@ const Room: FC = () => {
     }
   }
 
+  const shareDisplay = async () => {
+    if (peer) {
+      await peer.shareDisplay({video: true, audio: true})
+    }
+  }
 
 
   
@@ -79,6 +84,7 @@ const Room: FC = () => {
             <PeerVideo key={peer?.local.id} rtcPeer={peer}></PeerVideo>
             <Button>静音</Button>
             <Button onClick={openCamera}>打开摄像头</Button>
+            <Button onClick={shareDisplay}>分享屏幕</Button>
             <Button>屏幕共享</Button>
           </div>
         
