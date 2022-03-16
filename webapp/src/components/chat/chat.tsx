@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-16 21:30:57
+ * @LastEditTime: 2022-03-16 23:22:16
  */
 
 import { Input } from 'antd'
@@ -22,7 +22,7 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
   const [textValue, setTextValue] = useState<string>("")
   const [emojiPickerDisplay, setEmojiPickerDisplay] = useState<boolean>(false)
   const [textValueCurrentIndex, setTextValueCurrentIndex] = useState<number>(0)
-  const textareaRef = useRef(null)
+  const textareaRef = useRef<Input>(null)
   
   useEffect( () => {
     peer.on('message:dc', (data: DcMessage) => {           
@@ -52,7 +52,7 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
     })
   }
 
-  const inputPressEnter = (e) => {    
+  const inputPressEnter = (e: any) => {    
     if (e.keyCode === 13 && e.ctrlKey) {
       setTextValue(textValue+"\n")
       return
@@ -65,42 +65,25 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
 
   }
 
-  const inputChange = (e) => {
-    console.log(e.target.selectionStart);
-
+  const inputChange = (e: any) => {
     setTextValue(e.target.value)
   }
 
   const onClickEmoji = (emoji: string) => {
-    // console.log(textareaRef.current);
-    console.log(textValueCurrentIndex);
-    
-    setTextValue(textValue.substring(0, textValueCurrentIndex) + emoji + textValue.substring(textValueCurrentIndex))    
+    const value = textValue.substring(0, textValueCurrentIndex) + emoji + textValue.substring(textValueCurrentIndex)
+    setTextValue(value)    
     textareaRef.current?.focus()
+    setTextValueCurrentIndex(value.length)
     setEmojiPickerDisplay(!emojiPickerDisplay)
   }
 
-  const focuChange = (e) => {
-    setTextValueCurrentIndex(e.target.selectionStart)
-  }
-  const clickChange = (e) => {
-    setTextValueCurrentIndex(e.target.selectionStart)
-  }
 
   const displayEmoji = (e)=> {
     setEmojiPickerDisplay(!emojiPickerDisplay)
   }
 
-  const keyDown = (e: any) => {
-    const index = e.target.selectionStart
-    console.log(index, e.target.selectionEnd);
-    
-    if (e.code == 'ArrowLeft' && index > 0) {
-      setTextValueCurrentIndex(index-1)
-    }
-    if (e.code === 'ArrowRight') {
-      setTextValueCurrentIndex(index + 1)
-    }
+  const setValueCurrentIndex = (e: any) => {
+    setTextValueCurrentIndex( e.target.selectionStart)
   }
   return (
     <div className={styles.chatPanel}>
@@ -123,10 +106,9 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
           style={{resize: 'none'}}
           rows={4} 
           bordered={false} 
-          onClick={clickChange}
-          onFocus={focuChange}
+          onClick={setValueCurrentIndex}
+          onKeyUp={setValueCurrentIndex}
           onChange={inputChange}
-          onKeyDown={keyDown}
           onPressEnter={inputPressEnter}></TextArea>
       </div>
     </div>
