@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-03-03 15:24:29
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-15 15:49:59
+ * @LastEditTime: 2022-03-17 00:03:52
  */
 
 import EventEmitter from "eventemitter3"
@@ -153,6 +153,8 @@ export default class Peer {
     pc.addEventListener('datachannel', (event) => {    
       const dc = event.channel   
       dc.onmessage = (event) => {
+        console.log(event.data);
+        
         this.rtcPeerInstance.emit('message:dc', JSON.parse(event.data) as DcMessage)
       }
     })

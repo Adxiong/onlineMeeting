@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-16 23:22:16
+ * @LastEditTime: 2022-03-17 00:07:33
  */
 
 import { Input } from 'antd'
@@ -23,6 +23,7 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
   const [emojiPickerDisplay, setEmojiPickerDisplay] = useState<boolean>(false)
   const [textValueCurrentIndex, setTextValueCurrentIndex] = useState<number>(0)
   const textareaRef = useRef<Input>(null)
+  const TextContentRef = useRef<HTMLDivElement>(null)
   
   useEffect( () => {
     peer.on('message:dc', (data: DcMessage) => {           
@@ -62,29 +63,42 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
       setTextValue("")
       e.preventDefault()
     }
-
   }
 
   const inputChange = (e: any) => {
-    setTextValue(e.target.value)
+    setTextValue(e.target.innerText)
   }
 
   const onClickEmoji = (emoji: string) => {
-    const value = textValue.substring(0, textValueCurrentIndex) + emoji + textValue.substring(textValueCurrentIndex)
-    setTextValue(value)    
-    textareaRef.current?.focus()
+    const value = textValue.substring(0, textValueCurrentIndex) + emoji + textValue.substring(textValueCurrentIndex)    
+    setTextValue(value)        
+    TextContentRef.current!.innerText = value
+    TextContentRef.current?.focus()
     setTextValueCurrentIndex(value.length)
     setEmojiPickerDisplay(!emojiPickerDisplay)
   }
-
 
   const displayEmoji = (e)=> {
     setEmojiPickerDisplay(!emojiPickerDisplay)
   }
 
   const setValueCurrentIndex = (e: any) => {
-    setTextValueCurrentIndex( e.target.selectionStart)
+    const selection = window.getSelection()
+    if(selection){
+      setTextValueCurrentIndex(selection.focusOffset)
+    }
+
+    if (e.keyCode === 13 && e.ctrlKey) {
+      setTextValue(textValue+"\n")
+      return
+    }
+    if (e.keyCode === 13) {
+      sendMessage(textValue)
+      setTextValue("")
+      e.preventDefault()
+    }
   }
+
   return (
     <div className={styles.chatPanel}>
       <div className={styles.messageBox}>
@@ -99,7 +113,17 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
             emojiPickerDisplay && <EmojiPicker clickEmoji={onClickEmoji}/>
           }
         </div>
-        <TextArea 
+        <div 
+          ref={TextContentRef}
+          contentEditable="true"
+          style={{height: 200}}
+          onClick={setValueCurrentIndex}
+          onKeyUp={setValueCurrentIndex}
+          onInput={inputChange}
+        > 
+
+        </div>
+        {/* <TextArea 
           ref={textareaRef}
           value={textValue}
           autoFocus
@@ -110,7 +134,8 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
           onKeyUp={setValueCurrentIndex}
           onChange={inputChange}
           onPressEnter={inputPressEnter}></TextArea>
-      </div>
+          */}
+      </div> 
     </div>
   )
 }
