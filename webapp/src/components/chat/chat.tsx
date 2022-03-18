@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-16 17:25:24
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-17 00:07:33
+ * @LastEditTime: 2022-03-17 18:02:11
  */
 
 import { Input } from 'antd'
@@ -88,14 +88,36 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
       setTextValueCurrentIndex(selection.focusOffset)
     }
 
-    if (e.keyCode === 13 && e.ctrlKey) {
+    if (e.keyCode === 13 && e.ctrlKey) {      
       setTextValue(textValue+"\n")
       return
     }
     if (e.keyCode === 13) {
-      sendMessage(textValue)
-      setTextValue("")
       e.preventDefault()
+      let data = TextContentRef.current?.innerHTML
+      if (data) {
+        data = data
+        .replace(/<div><br><\/div>/, "")
+        .replace(/<script>.*?<\/script>>/, "")
+        sendMessage(data)
+        setTextValue("")
+        TextContentRef.current!.innerText = ""
+      }
+    }
+  }
+
+  const pasteEvent = (e) => {
+    console.table(e.clipboardData.items);
+    e.preventDefault()
+    const data = e.clipboardData.items[0]
+    switch (data.kind) {
+      case 'string':
+        data.getAsString((str: string)=>{
+          TextContentRef.current!.innerHTML += str
+        })
+      case "file":
+        const file = data.getAsFile()
+        console.log(file);    
     }
   }
 
@@ -120,6 +142,7 @@ const Chat = ({peer}: {peer: RTCPeer}) => {
           onClick={setValueCurrentIndex}
           onKeyUp={setValueCurrentIndex}
           onInput={inputChange}
+          onPaste={pasteEvent}
         > 
 
         </div>

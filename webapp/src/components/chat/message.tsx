@@ -4,7 +4,7 @@
  * @Author: Adxiong
  * @Date: 2022-02-19 15:16:53
  * @LastEditors: Adxiong
- * @LastEditTime: 2022-03-15 00:05:20
+ * @LastEditTime: 2022-03-17 17:28:54
  */
 
 import { Avatar } from 'antd'
@@ -30,7 +30,7 @@ const Message: FC<Props> = (props) => {
             <Avatar className={style.avatar} size={40}>{item.sendNick}</Avatar>
             <div className={style.messageContent}>
               <div className={style.name}>{item.sendNick}</div>
-              <div className={style.content}>{item.content}</div>
+              <div className={style.content} dangerouslySetInnerHTML={{__html: item.content}}></div>
             </div>
           </div>
         ))
